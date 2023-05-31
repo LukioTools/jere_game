@@ -23,7 +23,7 @@ body{
     padding: 0px;
     margin: auto;
     aspect-ratio: 1;
-    margin-left: 20vw;
+    margin-left: var(--bar-w);
 }
 
 .start{
@@ -34,23 +34,19 @@ body{
     margin: auto;
 }
 
-.square{
-    margin: 2px;
+.square {
+    /*! margin: 2px; */
     border-style: solid;
-    border-width: 4px;
-    background-color: gray;
-    border-color: aqua;
+    border-width: 0px 4px 4px 0px;
+    background-color: var(--bg-box);
+    border-color: var(--border-box);
     aspect-ratio: 1;
-}
-
-.selec{
-    background-color: blue;
 }
 
 .turn_manager{
     position: fixed;
     height: 100vh;
-    width: 20vw;
+    width: var(--bar-w);
     top: 0px;
     left: 0px;
     margin-right: auto;

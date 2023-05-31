@@ -1,4 +1,7 @@
 :root{
     --bg: rgb(0,0,0);
     --bg-turn: rgb(35,35,35);
+    --bar-w: 10vw;
+    --border-box: rgb(38, 38, 41);
+    --bg-box: rgb(50, 50, 52);
 }
