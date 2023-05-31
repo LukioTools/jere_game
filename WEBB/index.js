@@ -53,7 +53,7 @@ function start(){
     maingrid.css("grid-template-rows", `repeat(${maxy}, 1fr)`);
     for (let x = 0; x < maxx; x++) {
         for (let y = 0; y < maxy; y++) {
-            const da_thin = `<div class="square" x="${x}" y="${y}" onclick="select(this)"></div>`
+            const da_thin = `<div class="square" x="${x}" y="${y}" notselected="1" onclick="select(this)"></div>`
             maingrid.append(da_thin);
         }
     }
@@ -116,6 +116,7 @@ function checkSide(x, y, px, py){
             between.css("background-color", cur.attr("color"))
             between.attr("captured", true)
             between.attr("selected", true)
+            between.attr("notselected", "")
             console.info(`Captured witht color : ${cur.attr("color")}`)
             checkAll(bx, by)
             return true
@@ -164,12 +165,25 @@ function select(element){
 
     //capture
     jqEl.attr("color", players[player_turn].color);
+    jqEl.attr("notselected", "");
     jqEl.css("background-color", players[player_turn].color)
     checkAll(x, y)
 
 
     //iterate
     updatePlayer()
+    checkEnd()
+}
+
+function end(){
+
+}
+
+function checkEnd(){
+    let e = $("notselected")
+    if(e.length == 0){
+        end()
+    }
 }
 
 function updatePlayer(){
@@ -177,6 +191,8 @@ function updatePlayer(){
     if(player_turn >= players.length){
         player_turn = 0
     }
+
+
 }
 
 
