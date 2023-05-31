@@ -51,6 +51,8 @@ function start(){
     maxy = parseInt(y_el.value)
     maingrid.css("grid-template-columns", `repeat(${maxx}, 1fr)`);
     maingrid.css("grid-template-rows", `repeat(${maxy}, 1fr)`);
+    maingrid.css("aspect-ratio", `${maxx}/${maxy}`);
+    
     for (let x = 0; x < maxx; x++) {
         for (let y = 0; y < maxy; y++) {
             const da_thin = `<div class="square" x="${x}" y="${y}" notselected="1" onclick="select(this)"></div>`
