@@ -2,6 +2,11 @@ const log = console.log
 
 let players = []
 
+let player_turn = 0
+let maxx;
+let maxy;
+let diagonal = false
+
 function waitForLoad() {
     return new Promise((res, rej) => {
         if (document.readyState === 'ready' || document.readyState === 'complete') {
@@ -17,15 +22,15 @@ function waitForLoad() {
 }
 
 function warnWrongRange(element){
-    console.log("die")
+    //console.log("die")
 }
 
 function start(){
     let x_el = document.getElementById("x")
     let y_el = document.getElementById("y")
 
-    console.log(x_el.value)
-    console.log(y_el.value)
+    //console.log(x_el.value)
+    //console.log(y_el.value)
 
     if(x_el.value <= 0){
         warnWrongRange(x_el)
@@ -36,15 +41,14 @@ function start(){
         return -1
     }
     //bounc che pas
-    log("ok")
+    //log("ok")
     $(".start").addClass("dn")
     let maingrid = $(".maingrid");
     maingrid.removeClass("dn")
 
     //maby a web worker idk idc
-    let fr = " 1fr "
-    let maxx = parseInt(x_el.value)
-    let maxy = parseInt(y_el.value)
+    maxx = parseInt(x_el.value)
+    maxy = parseInt(y_el.value)
     maingrid.css("grid-template-columns", `repeat(${maxx}, 1fr)`);
     maingrid.css("grid-template-rows", `repeat(${maxy}, 1fr)`);
     for (let x = 0; x < maxx; x++) {
@@ -64,21 +68,117 @@ function addPlayer(element){
         //hax
         return -1
     }
-    console.log(element);
+    //console.log(element);
     let shit = `<div class="player" style="background-color: ${col};">${nm}<div>`;
     players.push({name: nm, color: col, id: players.length})
     toapp.append(shit);
 }
 
+function boundsCheck(pos){
+    if(pos >= maxx | pos >= maxy){
+        //console.log(`Bounds: above ${pos}`)
+        return true
+    }
+    if(pos < 0){
+        //console.log(`Bounds: negative ${pos}`)
+        return true
+    }
+    return false
+}
+/**
+ * 
+ * @param {x} x
+ * @param {y} y
+ * @param {2 | 0} px
+ * @param {2 | 0} py
+ * @returns {true | false}
+ */
+function checkSide(x, y, px, py){
+    let tx = x+px
+    let ty = y+py
+
+    let bx = x+(px/2)
+    let by = y+(py/2)
+    if(boundsCheck(tx)){
+        return -1
+    }
+    if(boundsCheck(ty)){
+        return -1
+    }
+    let mg_child = document.getElementById("mg").children
+    //console.log(mg_child)
+    let cur = $(mg_child.item(maxx*x + y))
+    let check = mg_child.item(maxx*tx +ty)
+    let between = $(mg_child.item(maxx*bx + by))
+    if(cur.attr("color") == $(check).attr("color")){
+        if(between.attr("captured") == undefined){
+            between.attr("color", cur.attr("color"))
+            between.css("background-color", cur.attr("color"))
+            between.attr("captured", true)
+            between.attr("selected", true)
+            console.info(`Captured witht color : ${cur.attr("color")}`)
+            checkAll(bx, by)
+            return true
+        }
+    }
+    return false
+
+}
+
+function checkDiagonal(x, y){
+    if(diagonal == true){
+        let a = checkSide(x, y, 2, 2)
+        let b = checkSide(x, y, -2, -2)
+        let c = checkSide(x, y, -2, 2)
+        let d = checkSide(x, y, 2, -2)
+        return [a, b, c, d]
+    }
+    else return false
+}
+
+
+function checkAdjacent(x, y){
+    let a = checkSide(x, y, 2, 0)
+    let b = checkSide(x, y, -2, 0)
+    let c = checkSide(x, y, 0, 2)
+    let d = checkSide(x, y, 0, -2)
+    return [a, b, c, d]
+}
+
+function checkAll(x, y){
+    let a = checkAdjacent(x, y)
+    let b = checkDiagonal(x, y)
+    return [a, b]
+}
 
 function select(element){
     let jqEl = $(element)
     let x = parseInt(jqEl.attr("x")); 
     let y = parseInt(jqEl.attr("y")); 
-    console.log(x, y)
+    //console.log(x, y)
 
-    jqEl.addClass("selec")
+    if(jqEl.hasClass("selected")){
+        return -1
+    }
+    jqEl.addClass("selected")
+
+    //capture
+    jqEl.attr("color", players[player_turn].color);
+    jqEl.css("background-color", players[player_turn].color)
+    checkAll(x, y)
+
+
+    //iterate
+    updatePlayer()
 }
+
+function updatePlayer(){
+    player_turn += 1;
+    if(player_turn >= players.length){
+        player_turn = 0
+    }
+}
+
 
 waitForLoad()
 .then(() => {
