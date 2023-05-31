@@ -5,7 +5,9 @@ let players = []
 let player_turn = 0
 let maxx;
 let maxy;
-let diagonal = false
+let diagonal = true
+let horizontal = true
+let vertical = true
 
 function waitForLoad() {
     return new Promise((res, rej) => {
@@ -40,18 +42,13 @@ function start(){
         warnWrongRange(y_el)
         return -1
     }
-    //bounc che pas
-    //log("ok")
-    $(".start").addClass("dn")
-    let maingrid = $(".maingrid");
-    maingrid.removeClass("dn")
 
-    //maby a web worker idk idc
     maxx = parseInt(x_el.value)
     maxy = parseInt(y_el.value)
-    maingrid.css("grid-template-columns", `repeat(${maxx}, 1fr)`);
-    maingrid.css("grid-template-rows", `repeat(${maxy}, 1fr)`);
-    maingrid.css("aspect-ratio", `${maxx}/${maxy}`);
+
+    //bounc che pas
+    //log("ok")
+    let maingrid = $(".maingrid");
     
     for (let x = 0; x < maxx; x++) {
         for (let y = 0; y < maxy; y++) {
@@ -59,6 +56,17 @@ function start(){
             maingrid.append(da_thin);
         }
     }
+
+    //maby a web worker idk idc
+    maingrid.css("grid-template-columns", `repeat(${maxx}, 1fr)`);
+    maingrid.css("grid-template-rows", `repeat(${maxy}, 1fr)`);
+    maingrid.css("aspect-ratio", `${maxx}/${maxy}`);
+
+
+    $(".start").addClass("dn")
+    maingrid.removeClass("dn")
+
+
 
 }
 
@@ -130,22 +138,25 @@ function checkSide(x, y, px, py){
 
 function checkDiagonal(x, y){
     if(diagonal == true){
-        let a = checkSide(x, y, 2, 2)
-        let b = checkSide(x, y, -2, -2)
-        let c = checkSide(x, y, -2, 2)
-        let d = checkSide(x, y, 2, -2)
-        return [a, b, c, d]
+        checkSide(x, y, 2, 2)
+        checkSide(x, y, -2, -2)
+        checkSide(x, y, -2, 2)
+        checkSide(x, y, 2, -2)
     }
     else return false
 }
 
 
 function checkAdjacent(x, y){
-    let a = checkSide(x, y, 2, 0)
-    let b = checkSide(x, y, -2, 0)
-    let c = checkSide(x, y, 0, 2)
-    let d = checkSide(x, y, 0, -2)
-    return [a, b, c, d]
+    if(horizontal){
+        checkSide(x, y, 2, 0)
+        checkSide(x, y, -2, 0)
+    }
+    if(vertical){
+        checkSide(x, y, 0, 2)
+        checkSide(x, y, 0, -2)
+    }
+
 }
 
 function checkAll(x, y){
