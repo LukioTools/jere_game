@@ -52,7 +52,7 @@ function start(){
     
     for (let x = 0; x < maxx; x++) {
         for (let y = 0; y < maxy; y++) {
-            const da_thin = `<div class="square" x="${x}" y="${y}" notselected="1" onclick="select(this)"></div>`
+            const da_thin = `<div class="square notselected" x="${x}" y="${y}"  onmousedown="select(this)"></div>`
             maingrid.append(da_thin);
         }
     }
@@ -65,7 +65,7 @@ function start(){
 
     $(".start").addClass("dn")
     maingrid.removeClass("dn")
-
+    updateBar()
 
 
 }
@@ -121,12 +121,14 @@ function checkSide(x, y, px, py){
     let check = mg_child.item(maxx*tx +ty)
     let between = $(mg_child.item(maxx*bx + by))
     if(cur.attr("color") == $(check).attr("color")){
-        if(between.attr("captured") == undefined){
+        console.log(between.attr("selected"))
+        if(between.attr("captured") == undefined && between.attr("selected") != undefined && cur.attr("color") != between.attr("color")){
             between.attr("color", cur.attr("color"))
             between.css("background-color", cur.attr("color"))
             between.attr("captured", true)
+            between.addClass("captured")
             between.attr("selected", true)
-            between.attr("notselected", "")
+            between.removeClass("notselected");
             console.info(`Captured witht color : ${cur.attr("color")}`)
             checkAll(bx, by)
             return true
@@ -178,7 +180,8 @@ function select(element){
 
     //capture
     jqEl.attr("color", players[player_turn].color);
-    jqEl.attr("notselected", "");
+    jqEl.removeClass("notselected");
+    jqEl.attr("selected", true);
     jqEl.css("background-color", players[player_turn].color)
     checkAll(x, y)
 
@@ -189,14 +192,21 @@ function select(element){
 }
 
 function end(){
-
+    console.log("end")
 }
 
 function checkEnd(){
-    let e = $("notselected")
+    let e = $(".notselected")
     if(e.length == 0){
         end()
     }
+}
+
+function updateBar(){
+    let player_bar = $(".turn_manager")
+    player_bar.css("background-color", players[player_turn].color)
+    player_bar.html(`<p class="playername">${players[player_turn].name}</p>`);
+    player_bar.css("background-color", players[player_turn].color)
 }
 
 function updatePlayer(){
@@ -204,7 +214,7 @@ function updatePlayer(){
     if(player_turn >= players.length){
         player_turn = 0
     }
-
+    updateBar()
 
 }
 
