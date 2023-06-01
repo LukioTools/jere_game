@@ -6,8 +6,9 @@ __pycache__/
 # C extensions
 *.so
 
-Electron/node_modules/*
+WEBB/Electron/node_modules/*
 
+WEBB/Server/node_modules/*
 
 # Distribution / packaging
 .Python
