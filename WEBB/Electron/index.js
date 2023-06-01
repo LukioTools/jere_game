@@ -2,6 +2,7 @@ console.log("Starting Electron...")
 const electron = require('electron')
 const socket = require("socket.io")
 
+
 const app = electron.app
 const path = require('path')
 const j = path.join
@@ -10,10 +11,10 @@ const createWindow = () => {
   const win = new electron.BrowserWindow({
     width: 800,
     height: 800,
-    icon: j(__dirname, "assets/icon.ico")
+    icon: j(__dirname, "/favico.ico")
   })
   win.removeMenu()
-  win.loadFile(j(__dirname, '/assets/index.html'))
+  win.loadFile(j(__dirname, 'assets/index.html'))
 }
 
 app.whenReady().then(() => {

@@ -1,17 +1,21 @@
 const express = require("express")
 const server = express()
 const https = require("https")
-
+const fs = require("fs")
+const path = require("path")
+const j = path.join
 const PORT = 8080
 
 
 server.use((req, res, next) => {
+    /*
     console.log(req)
     console.log(res)
+    */
     next()
 })
 
-startHttpsServer(server, https, PORT)
+startHttpsServer(https, server, PORT)
 
 function startHttpsServer(https, app, PORT){
     //create and listen to https server
@@ -30,11 +34,11 @@ function startHttpsServer(https, app, PORT){
     });
 }
 
-
+server.get("/assets/*", (req, res, next) => {
+    res.sendFile(j(__dirname, req.path))
+})
 
 
 server.get("*", (req, res, next) => {
-
-    res.sendStatus(200).send("Hell")
-    next()
+    res.sendFile(j(__dirname, "assets/index.html"))
 })
