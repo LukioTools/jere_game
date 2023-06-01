@@ -9,6 +9,7 @@ __pycache__/
 WEBB/Electron/node_modules/*
 
 WEBB/Server/node_modules/*
+WEBB/Server/private/*
 
 # Distribution / packaging
 .Python
