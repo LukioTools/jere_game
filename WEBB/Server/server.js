@@ -4,14 +4,18 @@ const https = require("https")
 const fs = require("fs")
 const path = require("path")
 const j = path.join
+
+const thread = require("worker_threads")
+
+//accept socets
+
+const socket_worker = new thread.Worker(j(__dirname, "socket_worker.js"))
+
 const PORT = 8080
 
 
 server.use((req, res, next) => {
-    /*
-    console.log(req)
-    console.log(res)
-    */
+    console.log(req.query)
     next()
 })
 
@@ -41,4 +45,9 @@ server.get("/assets/*", (req, res, next) => {
 
 server.get("*", (req, res, next) => {
     res.sendFile(j(__dirname, "assets/index.html"))
+})
+
+
+server.post("*", (req, res, next) => {
+    res.send("We dont do that here")
 })
