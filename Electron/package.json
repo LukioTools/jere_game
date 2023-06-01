@@ -10,5 +10,8 @@
     "electron"
   ],
   "author": "PikkuHurja (LukioTools)",
-  "license": "MIT"
+  "license": "MIT",
+  "devDependencies": {
+    "electron": "^25.0.1"
+  }
 }
