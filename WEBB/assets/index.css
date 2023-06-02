@@ -37,13 +37,17 @@ body{
 .square {
     /*! margin: 2px; */
     border-style: solid;
-    border-width: 0px 4px 4px 0px;
+    border-width: 2px;
     background-color: var(--bg-box);
     border-color: var(--border-box);
     aspect-ratio: 1;
 }
 
 .turn_manager{
+    display: flex;
+    flex-flow: column;
+    align-items: center;
+    justify-content: center;
     position: fixed;
     height: 100vh;
     width: var(--bar-w);
@@ -76,4 +80,19 @@ body{
 }
 .dn{
     display: none;
+}
+
+.captured{
+    border-color: azure;
+}
+
+.playername{
+    margin: auto;
+    color: azure;
+
+}
+
+.player{
+    padding: 8px;
+    margin: 0px;
 }

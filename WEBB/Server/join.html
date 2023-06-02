@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Join Game</title>
+    <link rel="stylesheet" href="/assets/root.css">
+    <link rel="stylesheet" href="/assets/index.css">
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.4.js" integrity="sha256-a9jBBRygX1Bh5lt8GZjXDzyOB+bWve9EiO7tROUtj/E=" crossorigin="anonymous"></script>
+    <script src="/assets/stripped_index.js"></script>
+    <script>
+        let soc;
+        let parsed = {}
+        let coords
+        let turn = false
+
+        function waitForLoad() {
+            return new Promise((res, rej) => {
+            if (document.readyState === 'ready' || document.readyState === 'complete') {
+                res()
+            } 
+            else {
+                document.onreadystatechange = () => {
+                    if (document.readyState == "complete") {res();}
+                }
+            }})
+        }
+
+        waitForLoad()
+        .then(() => {
+            //parse url and put the shit in the boxes
+            let params = window.location.search.substring(1).split("&")
+            params.forEach(el => {
+                let ee = el.split("=")
+                parsed[ee[0]] = ee[1]
+            })
+            if(parsed.hostname != undefined){document.getElementById("hostname").value = parsed.hostname}
+            if(parsed.password != undefined){document.getElementById("password").value = parsed.password}
+            if(parsed.username != undefined){document.getElementById("username").value = parsed.username}
+            if(parsed.color != undefined){document.getElementById("color").value = "#"+parsed.color}
+
+            if(parsed.autojoin==1 | parsed.autojoin=="1"){
+                console.log("joining")
+                join()
+            }        
+        })
+
+        function join(){
+            soc = io("/")
+            const jin_data = {
+                hostname: document.getElementById("hostname").value,
+                password: document.getElementById("password").value,
+                username: document.getElementById("username").value,
+                color: document.getElementById("color").value
+            }
+            console.log(jin_data)
+            soc.emit("join", JSON.stringify(jin_data))
+            soc.on("success", (val) => {
+                coords = JSON.parse(val)
+                console.log(coords)
+                generateGameBoard(coords.x, coords.y)
+                $(".join_inputs").addClass("dn");
+                $(".lobby").removeClass("dn");
+    
+                if(parsed.autojoin == 1 | parsed.autojoin == "1"){
+                    $(".start_btn").removeClass("dn");
+                }
+            })
+            soc.on("players", (players_string) => {
+                let players_json = JSON.parse(players_string)
+                let el = document.getElementById("lobby_players")
+                el.innerHTML = ""
+                let jqEl = $(el)
+                console.log(players_json)
+                for (let index = 0; index < players_json.length; index++) {
+                    const element = players_json[index];
+                    jqEl.append(`<p class="player" style="background-color: ${element.color};">${element.username}</p>`)
+                }
+            })
+            soc.on("start", () => {
+                console.log("Starting...")
+                $(".lobby").addClass("dn")
+                showGameBoard()
+
+            })
+            soc.on("thisturn", () => {
+                turn = true
+            })
+            soc.on("turn", (name_color_str) => {
+                //console.log(name_color_str)
+            })
+            soc.on("place", (coord_color) => {
+                //console.log(coord_color)
+                let cc = JSON.parse(coord_color) //hope that they are int :)
+                //console.log(cc)
+                placeOnBoard(parseInt(cc.x), parseInt(cc.y), cc.color)
+            })
+        }
+        function start(){
+            soc.emit("start", "true")
+        }
+        function select(element){
+            if(turn){
+                let jeql = $(element)
+                if(jeql.attr("selected")){
+                    return -1
+                }
+                let x = parseInt(jeql.attr("x"))
+                let y = parseInt(jeql.attr("y"))
+                //console.log("Sending", JSON.stringify({x:x, y: y}))
+                soc.emit("selected", JSON.stringify({x:x, y: y}))
+                turn = false
+            }
+            else{
+                console.log("wait 4 your turn")
+            }
+        }
+
+    </script>
+</head>
+<body>
+    <div class="start join_inputs">
+        <input type="text" name="hostname" id="hostname" placeholder="Hostname">
+        <input type="text" name="password" id="password" placeholder="Password">
+        <input type="text" name="username" id="username" placeholder="Username">
+        <input type="color" name="color" id="color" value="#FF0000">
+        <input type="button" value="Join a game" onclick="join()">
+    </div>
+    <div class="start lobby dn">
+        <div class="lobby_players" id="lobby_players">
+
+        </div>
+        <input class="start_btn dn" type="button" value="Start Game" id="start" onclick="start()">
+    </div>
+    <div class="start no_select dn">
+        <label for="x" class="no_select">Width</label>
+        <input type="number" name="x" id="x" placeholder="Width">
+        <label for="y" class="no_select">Height</label>
+        <input type="number" name="y" id="y" placeholder="Height">
+        <div class="add_player">
+            <input type="text" name="Player_Name" id="name" placeholder="Player's Name">
+            <input type="color" name="player_color" id="color" class="color">
+            <input class="add_btn" type="button" value="Add Player" onclick="addPlayer(this)">
+        </div>
+        <div class="players"></div>
+        <input class="start_btn" type="button" value="Start Game" onclick="start()">
+    </div>
+    <div class="maingrid dn no_select" id="mg"></div>
+
+    <div class="turn_manager no_select dn"></div>
+
+</body>
+</html>
