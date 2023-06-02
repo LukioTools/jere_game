@@ -7,22 +7,59 @@
     <title>Join Game</title>
     <script src="/socket.io/socket.io.js"></script>
     <script>
+        let parsed = {}
+
+        function waitForLoad() {
+            return new Promise((res, rej) => {
+                if (document.readyState === 'ready' || document.readyState === 'complete') {
+                    res()
+                } else {
+                    document.onreadystatechange = function () {
+                        if (document.readyState == "complete") {
+                            res();
+                        }
+                    }
+                }
+            })
+        }
+
+        waitForLoad()
+        .then(() => {
+            //parse url and put the shit in the boxes
+            let params = window.location.search.substring(1).split("&")
+            params.forEach(el => {
+                let ee = el.split("=")
+                parsed[ee[0]] = ee[1]
+            })
+
+            document.getElementById("hostname").value = parsed.hostname
+            document.getElementById("password").value = parsed.password
+            document.getElementById("username").value = parsed.username
+            document.getElementById("color").value = "#"+parsed.color
+
+            if(parsed.autojoin==1 | parsed.autojoin=="1"){
+                console.log("joining")
+                join()
+            }        
+        })
+
         let port = 25565
         function join(){
-            let soc = io("/socket")
+            let soc = io("/")
             const jin_data = {
-                host: document.getElementById("host").value,
+                hostname: document.getElementById("hostname").value,
                 password: document.getElementById("password").value,
                 username: document.getElementById("username").value,
                 color: document.getElementById("color").value
             }
+            console.log(jin_data)
             soc.emit("join", JSON.stringify(jin_data))
             
         }
     </script>
 </head>
 <body>
-    <input type="text" name="host" id="host" placeholder="Hostname">
+    <input type="text" name="hostname" id="hostname" placeholder="Hostname">
     <input type="text" name="password" id="password" placeholder="Password">
     <input type="text" name="username" id="username" placeholder="Username">
     <input type="color" name="color" id="color" value="#FF0000">
