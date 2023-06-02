@@ -17,7 +17,7 @@ const socket_worker = new thread.Worker(j(__dirname, "socket_worker.js"))
 */
 
 function newSocketHandle(socket){
-    //console.log(socket)
+    console.log(socket)
 
     socket.on("join", (json) => {
         socket.socket_info = JSON.parse(json)
@@ -38,42 +38,43 @@ function newSocketHandle(socket){
 
 let connecions = []
 
-
-const SOCKET_PORT = 25565
-
-const server_socket = new socket.Server()
-server_socket.listen(SOCKET_PORT)
-
-server_socket.on("connection", newSocketHandle)
-
 const PORT = 8080
 server.use(bParse.urlencoded({extended: true}))
 server.use((req, res, next) => {
-    console.log(req.body)
-    console.log(req.query)
+    //console.log(req.body)
+    //console.log(req.query)
     next()
 })
 
 
+let server_socket;
 
 startHttpsServer(https, server, PORT)
 
+server_socket.of("/socket").on("connection", newSocketHandle)
+
 function startHttpsServer(https, app, PORT){
     //create and listen to https server
-    https
-    .createServer(
-            // Provide the private and public key to the server by reading each
-            // file's content with the readFileSync() method.
-        {
-        key: fs.readFileSync("private/key.pem"),
-        cert: fs.readFileSync("private/cert.pem"),
-        },
-        app
+    server_socket = new socket.Server(
+        https
+        .createServer(
+                // Provide the private and public key to the server by reading each
+                // file's content with the readFileSync() method.
+            {
+            key: fs.readFileSync("private/key.pem"),
+            cert: fs.readFileSync("private/cert.pem"),
+            },
+            app
+        )
+        .listen(PORT, () => {
+            console.log("serever is runing at port", PORT);
+        })
     )
-    .listen(PORT, () => {
-        console.log("serever is runing at port", PORT);
-    });
 }
+
+server.get("/socket.io/socket.io.js", (req, res, next) => {
+    res.sendFile(j(__dirname, "node_modules/socket.io-client/dist/socket.io.js"))
+})
 
 server.get("/assets/*", (req, res, next) => {
     res.sendFile(j(__dirname, req.path))
@@ -97,7 +98,7 @@ server.post("/online/host", (req, res, next) => {
 })
 
 server.get("*", (req, res, next) => {
-    res.sendFile(j(__dirname, "assets/index.html"))
+    res.redirect("/online/join")
 })
 
 
@@ -121,10 +122,12 @@ function getCharBlock(){
     return buffer.toString('utf8')
 }
 
-
+/*
 while (true){
+    console.log("press s")
     let char = getCharBlock()
     if(char == "s"){
         connecions.forEach((el) => {console.log(el.socket_info)})
     }
 }
+*/

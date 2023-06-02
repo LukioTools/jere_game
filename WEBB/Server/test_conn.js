@@ -15,5 +15,5 @@ soc.on("update", (coords) => {
 })
 
 soc.on("turn", () => {
-
+    soc.emit("move", )
 })

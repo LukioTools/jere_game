@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Join Game</title>
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        let port = 25565
+        function join(){
+            let soc = io("/socket")
+            const jin_data = {
+                host: document.getElementById("host").value,
+                password: document.getElementById("password").value,
+                username: document.getElementById("username").value,
+                color: document.getElementById("color").value
+            }
+            soc.emit("join", JSON.stringify(jin_data))
+            
+        }
+    </script>
+</head>
+<body>
+    <input type="text" name="host" id="host" placeholder="Hostname">
+    <input type="text" name="password" id="password" placeholder="Password">
+    <input type="text" name="username" id="username" placeholder="Username">
+    <input type="color" name="color" id="color" value="#FF0000">
+    <input type="button" value="Join a game" onclick="join()">
+</body>
+</html>
