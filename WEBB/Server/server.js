@@ -45,9 +45,29 @@ class newGame{
             this.status = "No Hostname"
             return 0
         }
+        if(req.body.hostname == undefined){
+            this.status = "No Password"
+            return 0
+        }
+        if(req.body.x == undefined){
+            throw new Error("no x")
+        }
+        if(req.body.y== undefined){
+            throw new Error("no y")
+        }
 
         this.hostname = req.body.hostname
         this.password = req.body.password
+
+        this.x = parseInt(req.body.x)
+        this.y = parseInt(req.body.y)
+
+        if(this.x < 1){
+            throw new Error("wrong x")
+        }
+        if(this.y < 1){
+            throw new Error("wrong y")
+        }
 
         console.log("Listeing..", j(base_socket, this.hostname))
         this.socket_namespace = socket.of(j(base_socket, this.hostname))
@@ -65,22 +85,25 @@ class newGame{
      */
     acceptConnection(incoming_socket){
         if(this.joinable){
-            console.log("gea")
-            console.log(incoming_socket.socket_info)
+            //console.log(incoming_socket.socket_info)
             if(incoming_socket.socket_info.password == this.password){
                 if(this.connecions.length == 0){
                     incoming_socket.socket_info.host = true
-                    incoming_socket.on("start", () => {
+                    incoming_socket.once("start", () => {
                         this.joinable = false
                         for (let index = 0; index < this.connecions.length; index++) {
                             const socket = this.connecions[index];
                             socket.emit("start", "the game begisns")
                         }
                         console.log("startGame")
+                        this.start()
                     }) 
                 }
                 this.connecions.push(incoming_socket)
-                incoming_socket.emit("success", (true))
+                incoming_socket.emit("success", JSON.stringify({
+                    x:this.x,
+                    y:this.y
+                }))
                 let json_ls = [];
                 for (let index = 0; index < this.connecions.length; index++) {
                     const element = this.connecions[index];
@@ -96,13 +119,58 @@ class newGame{
         }        
     }
     disconnectSocket(socket){
-        const index = connecions.indexOf(socket);
+        
+        const index = this.connecions.indexOf(socket);
         console.log("disconnected", socket.socket_info)
         if (index > -1) { 
-            connecions.splice(index, 1); // 1 is for only 1
+            this.connecions.splice(index, 1); // 1 is for only 1
+        }
+        else{
+            console.log("no splice")
+        }
+        socket.disconnect()
+        console.log(this.connecions.length)
+        if(this.connecions.length == 0){
+            this.end()
+        }
+    }
+    async start(){
+        while(true){
+            for (let index = 0; index < this.connecions.length; index++) {
+                /**
+                 * @type {socket.Socket}
+                 */
+                const element = this.connecions[index];
+                this.broadCast("turn", JSON.stringify({
+                    username: element.socket_info.username, 
+                    color: element.socket_info.color
+                }))
+                console.log("waitting", element.socket_info.username)
+                element.emit("thisturn", true)
+                let coord = await this.waitSelection(element)
+                coord.color = element.socket_info.color
+                coord.username = element.socket_info.username
+                this.broadCast("place", JSON.stringify(coord))
+            }
         }
     }
 
+    /**
+     * 
+     * @param {socket.RemoteSocket} socket 
+     */
+    async waitSelection(socket){
+        return new Promise((res, rej) => {
+            socket.once("selected", (coord_str) => {
+                res(JSON.parse(coord_str))
+            })
+        })
+    }
+
+    end(){
+        console.log("end")
+        games[this.hostname] = undefined
+    }
 }
 
 
@@ -116,7 +184,7 @@ const socket_worker = new thread.Worker(j(__dirname, "socket_worker.js"))
 
 function newJoin(socket){
 
-    socket.on("join", (json) => {
+    socket.once("join", (json) => {
         console.log("newJoin:")
         socket.socket_info = JSON.parse(json)
         let da_agme = games[socket.socket_info.hostname]
@@ -128,7 +196,7 @@ function newJoin(socket){
         da_agme.acceptConnection(socket)
     })
 
-    socket.on("disconnect", () => {
+    socket.once("disconnect", () => {
         if(socket.socket_info == undefined){
             socket.disconnect()
         }
@@ -198,8 +266,8 @@ server.get("*", (req, res, next) => {
 server.post("/online/host", (req, res, next) => {
     console.log(req.body)
     //create a new game
-    if( req.body.hostname == undefined){next()}
-    if(games[req.body.hostname] != undefined){/*game exists*/ next()}
+    if( req.body.hostname == undefined){throw "game not defined"}
+    if(games[req.body.hostname] != undefined){/*game exists*/ throw "game exists"}
 
     games[req.body.hostname] = new newGame(req, server_socket)
     res.send(JSON.stringify({path: j("/socket/join/", req.body.hostname)}))

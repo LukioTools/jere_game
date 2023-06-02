@@ -17,12 +17,18 @@
             let hostname = document.getElementById("hostname").value
             let password = document.getElementById("password").value
             let color = document.getElementById("color").value
-            console.log(JSON.stringify({
+            let x = document.getElementById("x").value
+            let y = document.getElementById("y").value
+            let data = JSON.stringify({
                 hostname: hostname,
                 password: password,
                 username: username,
-                color: color
-            }))
+                color: color,
+                x: x,
+                y: y
+            })
+            console.log(data)
+
             fetch('/online/host', {
                 method: 'POST',
                 headers: {
@@ -31,6 +37,8 @@
                 body: JSON.stringify({
                     hostname: hostname,
                     password: password,
+                    x: x,
+                    y: y
                 })
             })
             .then((res) => {
@@ -51,8 +59,12 @@
         <input type="text" name="password" id="password" placeholder="Password">
         <input type="text" name="username" id="username" placeholder="Username">
         <input type="color" name="color" id="color" value="#FF0000">
+        <div>
+        <p>width</p>
         <input type="number" name="x" id="x" value="3">
+        <p>height</p>
         <input type="number" name="y" id="y" value="3">
+        </div>
         <input type="button" value="Host a new game" onclick="hostGame()">
     </div>
 

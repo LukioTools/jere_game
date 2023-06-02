@@ -158,7 +158,6 @@ function checkAdjacent(x, y){
         checkSide(x, y, 0, 2)
         checkSide(x, y, 0, -2)
     }
-
 }
 
 function checkAll(x, y){

@@ -9,22 +9,23 @@
     <link rel="stylesheet" href="/assets/index.css">
     <script src="/socket.io/socket.io.js"></script>
     <script src="https://code.jquery.com/jquery-3.6.4.js" integrity="sha256-a9jBBRygX1Bh5lt8GZjXDzyOB+bWve9EiO7tROUtj/E=" crossorigin="anonymous"></script>
+    <script src="/assets/stripped_index.js"></script>
     <script>
         let soc;
         let parsed = {}
+        let coords
+        let turn = false
 
         function waitForLoad() {
             return new Promise((res, rej) => {
-                if (document.readyState === 'ready' || document.readyState === 'complete') {
-                    res()
-                } else {
-                    document.onreadystatechange = function () {
-                        if (document.readyState == "complete") {
-                            res();
-                        }
-                    }
+            if (document.readyState === 'ready' || document.readyState === 'complete') {
+                res()
+            } 
+            else {
+                document.onreadystatechange = () => {
+                    if (document.readyState == "complete") {res();}
                 }
-            })
+            }})
         }
 
         waitForLoad()
@@ -35,11 +36,10 @@
                 let ee = el.split("=")
                 parsed[ee[0]] = ee[1]
             })
-
-            document.getElementById("hostname").value = parsed.hostname
-            document.getElementById("password").value = parsed.password
-            document.getElementById("username").value = parsed.username
-            document.getElementById("color").value = "#"+parsed.color
+            if(parsed.hostname != undefined){document.getElementById("hostname").value = parsed.hostname}
+            if(parsed.password != undefined){document.getElementById("password").value = parsed.password}
+            if(parsed.username != undefined){document.getElementById("username").value = parsed.username}
+            if(parsed.color != undefined){document.getElementById("color").value = "#"+parsed.color}
 
             if(parsed.autojoin==1 | parsed.autojoin=="1"){
                 console.log("joining")
@@ -47,10 +47,8 @@
             }        
         })
 
-        let port = 25565
         function join(){
             soc = io("/")
-            soci = soc
             const jin_data = {
                 hostname: document.getElementById("hostname").value,
                 password: document.getElementById("password").value,
@@ -60,7 +58,9 @@
             console.log(jin_data)
             soc.emit("join", JSON.stringify(jin_data))
             soc.on("success", (val) => {
-                console.log(val)
+                coords = JSON.parse(val)
+                console.log(coords)
+                generateGameBoard(coords.x, coords.y)
                 $(".join_inputs").addClass("dn");
                 $(".lobby").removeClass("dn");
     
@@ -81,12 +81,43 @@
             })
             soc.on("start", () => {
                 console.log("Starting...")
+                $(".lobby").addClass("dn")
+                showGameBoard()
+
             })
-            
+            soc.on("thisturn", () => {
+                turn = true
+            })
+            soc.on("turn", (name_color_str) => {
+                //console.log(name_color_str)
+            })
+            soc.on("place", (coord_color) => {
+                //console.log(coord_color)
+                let cc = JSON.parse(coord_color) //hope that they are int :)
+                //console.log(cc)
+                placeOnBoard(parseInt(cc.x), parseInt(cc.y), cc.color)
+            })
         }
         function start(){
             soc.emit("start", "true")
         }
+        function select(element){
+            if(turn){
+                let jeql = $(element)
+                if(jeql.attr("selected")){
+                    return -1
+                }
+                let x = parseInt(jeql.attr("x"))
+                let y = parseInt(jeql.attr("y"))
+                //console.log("Sending", JSON.stringify({x:x, y: y}))
+                soc.emit("selected", JSON.stringify({x:x, y: y}))
+                turn = false
+            }
+            else{
+                console.log("wait 4 your turn")
+            }
+        }
+
     </script>
 </head>
 <body>
