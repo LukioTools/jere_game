@@ -12,7 +12,6 @@ const fs = require("fs")
 const path = require("path")
 const j = path.join
 
-const s_l = require("./sock_log")
 
 const socket = require("socket.io")
 
@@ -32,6 +31,11 @@ class newGame{
      * @param {socket.Server} socket 
      */
     constructor(req, socket){
+        /**
+         * @type {[socket.Socket]}
+         */
+        this.connecions = []
+        this.joinable = true
         this.status = 0
         if(req.body == undefined){
             this.status = "No Body"
@@ -44,33 +48,52 @@ class newGame{
 
         this.hostname = req.body.hostname
         this.password = req.body.password
-        this.connecions = []
 
         console.log("Listeing..", j(base_socket, this.hostname))
         this.socket_namespace = socket.of(j(base_socket, this.hostname))
+    }
+
+    broadCast(event, message){
+        for (let index = 0; index < this.connecions.length; index++) {
+            const socket = this.connecions[index];
+            socket.emit(event, message)
+        }
     }
     /**
      * 
      * @param {socket.Socket} incoming_socket 
      */
     acceptConnection(incoming_socket){
-        console.log("gea")
-        console.log(incoming_socket.socket_info)
-        if(incoming_socket.socket_info.password == this.password){
-            if(this.connecions.length == 0){
-                incoming_socket.socket_info.host = true
+        if(this.joinable){
+            console.log("gea")
+            console.log(incoming_socket.socket_info)
+            if(incoming_socket.socket_info.password == this.password){
+                if(this.connecions.length == 0){
+                    incoming_socket.socket_info.host = true
+                    incoming_socket.on("start", () => {
+                        this.joinable = false
+                        for (let index = 0; index < this.connecions.length; index++) {
+                            const socket = this.connecions[index];
+                            socket.emit("start", "the game begisns")
+                        }
+                        console.log("startGame")
+                    }) 
+                }
+                this.connecions.push(incoming_socket)
+                incoming_socket.emit("success", (true))
+                let json_ls = [];
+                for (let index = 0; index < this.connecions.length; index++) {
+                    const element = this.connecions[index];
+                    json_ls.push(element.socket_info)
+                }
+                let js_str = JSON.stringify(json_ls)
+                this.broadCast("players", js_str)
             }
-            this.connecions.push(incoming_socket)
-            incoming_socket.emit("success", (true))
-            incoming_socket.on("start", this.startGame)
-        }
-        else{
-            console.log("destroying socket")
-            incoming_socket.disconnect()
-        }
-    }
-    startGame(something){
-        console.log("startGame", something)
+            else{
+                console.log("destroying socket")
+                incoming_socket.disconnect()
+            }
+        }        
     }
     disconnectSocket(socket){
         const index = connecions.indexOf(socket);
@@ -106,9 +129,14 @@ function newJoin(socket){
     })
 
     socket.on("disconnect", () => {
-        let da_agme = games[socket.socket_info.hostname]
-        if(da_agme != undefined){
-            da_agme.disconnectSocket(socket)
+        if(socket.socket_info == undefined){
+            socket.disconnect()
+        }
+        else{
+            let da_agme = games[socket.socket_info.hostname]
+            if(da_agme != undefined){
+                da_agme.disconnectSocket(socket)
+            }
         }
     })
 }

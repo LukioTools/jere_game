@@ -91,3 +91,8 @@ body{
     color: azure;
 
 }
+
+.player{
+    padding: 8px;
+    margin: 0px;
+}

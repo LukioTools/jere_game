@@ -4,6 +4,11 @@
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/assets/root.css">
+    <link rel="stylesheet" href="/assets/index.css">
+
+    <script src="https://code.jquery.com/jquery-3.6.4.js" integrity="sha256-a9jBBRygX1Bh5lt8GZjXDzyOB+bWve9EiO7tROUtj/E=" crossorigin="anonymous"></script>
+
     <title>Host</title>
     <script>
         var reus;
@@ -26,8 +31,6 @@
                 body: JSON.stringify({
                     hostname: hostname,
                     password: password,
-                    username: username,
-                    color: color
                 })
             })
             .then((res) => {
@@ -42,11 +45,16 @@
     </script>
 </head>
 <body>
-    <p>Host A NEW Game</p>
-    <input type="text" name="hostname" id="hostname" placeholder="Hostname">
-    <input type="text" name="password" id="password" placeholder="Password">
-    <input type="text" name="username" id="username" placeholder="Username">
-    <input type="color" name="color" id="color" value="#FF0000">
-    <input type="button" value="Host a new game" onclick="hostGame()">
+    <div class="start">
+        <p>Host A NEW Game</p>
+        <input type="text" name="hostname" id="hostname" placeholder="Hostname">
+        <input type="text" name="password" id="password" placeholder="Password">
+        <input type="text" name="username" id="username" placeholder="Username">
+        <input type="color" name="color" id="color" value="#FF0000">
+        <input type="number" name="x" id="x" value="3">
+        <input type="number" name="y" id="y" value="3">
+        <input type="button" value="Host a new game" onclick="hostGame()">
+    </div>
+
 </body>
 </html>
