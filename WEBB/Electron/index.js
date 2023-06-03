@@ -7,13 +7,21 @@ const app = electron.app
 const path = require('path')
 const j = path.join
 
+
+if (process.platform == 'darwin'){
+    const image = electron.nativeImage.createFromPath(j(__dirname, "e_assets/favicon.ico"))
+    app.dock.setIcon(image)
+}
+
+
+
 app.commandLine.appendSwitch('ignore-certificate-errors')
 
 const createWindow = () => {
     const win = new electron.BrowserWindow({
         width: 800,
-        height: 800,
-        icon: j(__dirname, "favico.ico")
+        height: 600,
+        icon: j(__dirname, "e_assets/jere_icon.png")
     })
     win.removeMenu()
     win.webContents.openDevTools()
