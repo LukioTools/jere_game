@@ -252,13 +252,18 @@ server.get("/assets/*", (req, res, next) => {
     res.sendFile(j(__dirname, req.path))
 })
 server.get("/online/join", (req, res, next) => {
-    res.sendFile(j(__dirname, "join.html"))
+    res.sendFile(j(__dirname, "/assets/join.html"))
 
 })
 server.get("/online/host", (req, res, next) => {
     //create a new game
-    res.sendFile(j(__dirname, "host.html"))
+    res.sendFile(j(__dirname, "/assets/host.html"))
 })
+server.get("/offline/*", (req, res, next) => {
+    //create a new game
+    res.sendFile(j(__dirname, "/assets/index.html"))
+})
+
 server.get("*", (req, res, next) => {
     res.redirect("/online/join")
 })

@@ -4,8 +4,8 @@
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="assets/root.css">
-    <link rel="stylesheet" href="assets/index.css">
+    <link rel="stylesheet" href="/assets/root.css">
+    <link rel="stylesheet" href="/assets/index.css">
     <script src="https://code.jquery.com/jquery-3.6.4.js" integrity="sha256-a9jBBRygX1Bh5lt8GZjXDzyOB+bWve9EiO7tROUtj/E=" crossorigin="anonymous"></script>
     <script src="assets/index.js"></script>
     <title>Jere_Game</title>
@@ -23,9 +23,18 @@
         </div>
         <div class="players"></div>
         <input class="start_btn" type="button" value="Start Game" onclick="start()">
-    </div>
-    <div class="maingrid dn no_select" id="mg"></div>
 
+        <div class="playopts">
+            <H1>Play Offline</H1>
+            <a href="/offline/">Play Offline</a>
+            <H1>Play Online</H1>
+            <a href="/assets/host.html">Host a new Game</a>
+            <a href="/assets/join.html">Join a new Game</a>
+        </div>
+    </div>
+
+
+    <div class="maingrid dn no_select" id="mg"></div>
     <div class="turn_manager no_select"></div>
 </body>
 </html>
