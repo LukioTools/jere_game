@@ -103,6 +103,24 @@ a {
     margin: 0px;
 }
 
+input[type="text"]{
+    padding: 4px 0px;
+    padding-left: 8px;
+    border-style: solid;
+    border-width: var(--pn-border);
+    border-color: var(--theme-main-dark-bit);
+    border-radius: 2px;
+
+    background-color: var(--theme-main-dark);
+    color: var(--pn-border-tx-color);
+}
+input[type="text"]::placeholder {
+    color: var(--text-white);
+    opacity: 1;
+}
+
+
+
 .player_name {
     padding: 4px 0px;
     padding-left: 8px;
@@ -158,12 +176,17 @@ a {
     cursor: pointer;
 }
 
+
+
 .board {
     display: flex;
     flex-flow: column;
     align-items: center;
     justify-content: center;
     margin: 0px;
+}
+.server_settings{
+    margin: 1em 0px;
 }
 
 .board_settings {

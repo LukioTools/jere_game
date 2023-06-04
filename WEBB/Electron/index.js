@@ -19,8 +19,8 @@ app.commandLine.appendSwitch('ignore-certificate-errors')
 
 const createWindow = () => {
     const win = new electron.BrowserWindow({
-        width: 800,
-        height: 600,
+        width: 600,
+        height: 800,
         icon: j(__dirname, "e_assets/jere_icon.png")
     })
     win.removeMenu()
