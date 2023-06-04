@@ -28,7 +28,7 @@ body {
     padding: 0px;
     margin: auto;
     aspect-ratio: 1;
-    margin-left: var(--theme-main-dark);
+    margin-left: var(--bar-w);
 }
 
 a {

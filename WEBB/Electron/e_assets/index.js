@@ -64,6 +64,8 @@ function start(){
 
 
     $(".start").addClass("dn")
+    $(".turn_manager").removeClass("dn")
+    $(".game").removeClass("dn")
     maingrid.removeClass("dn")
     updateBar()
 
@@ -203,9 +205,12 @@ function checkEnd(){
 
 function updateBar(){
     let player_bar = $(".turn_manager")
-    player_bar.css("background-color", players[player_turn].color)
     player_bar.html(`<p class="playername">${players[player_turn].name}</p>`);
     player_bar.css("background-color", players[player_turn].color)
+
+    let bg = $("body")
+    bg.css("background-color", players[player_turn].color)
+
 }
 
 function updatePlayer(){

@@ -17,15 +17,22 @@ if (process.platform == 'darwin'){
 
 app.commandLine.appendSwitch('ignore-certificate-errors')
 
+let tray = null
+
 const createWindow = () => {
     const win = new electron.BrowserWindow({
-        width: 600,
-        height: 800,
+        width: 1600,
+        height: 1800,
         icon: j(__dirname, "e_assets/jere_icon.png")
     })
     win.removeMenu()
     win.webContents.openDevTools()
     win.loadFile(j(__dirname, 'e_assets/index.html'))
+    win.flashFrame(true)
+    win.once('focus', () => win.flashFrame(false))
+
+    tray = new electron.Tray(j(__dirname, "e_assets/jere_icon.png"))
+    tray.setToolTip("Le game of the jere")
 }
 
 app.whenReady().then(() => {
