@@ -11,6 +11,8 @@ WEBB/Electron/node_modules/*
 WEBB/Server/node_modules/*
 WEBB/Server/private/*
 
+node_modules/*
+
 # Distribution / packaging
 .Python
 build/

@@ -4,26 +4,27 @@
  */
 let server_socket;
 
+/**
+ * @type {[newGame]}
+ */
+let games = {}
+
+
+
+const PORT = 5555
 const verbose = false;
 
 const clear_uimput_regexp = /[^0-9A-Z]/gi
 const color_uimput_regexp_test = /^#(?:[0-9a-fA-F]{3}){1,2}$/
 
+
+
+
 const express = require("express")
 const server = express()
-const https = require("https")
-const fs = require("fs")
 const path = require("path")
 const j = path.join
 const socket = require("socket.io")
-
-
-const PORT = 5555
-
-/**
- * @type {[newGame]}
- */
-let games = {}
 
 
 function log(val){
@@ -137,16 +138,17 @@ class newGame{
         else{
             log("no splice")
         }
-
-        if(socket.socket_info.host){
-            this.connecions[0].socket_info.host = true;
-        }
-
-        socket.disconnect()
         log(this.connecions.length)
         if(this.connecions.length == 0){
             this.end()
         }
+        //the game not end
+        else if(socket.socket_info.host){
+            this.connecions[0].socket_info.host = true;
+        }
+
+        socket.disconnect()
+        
 
         
     }
@@ -185,17 +187,9 @@ class newGame{
 
     end(){
         log("end")
-        games[this.hostname] = undefined
+        delete games[this.hostname]
     }
 }
-
-
-/*
-const thread = require("worker_threads")
-//accept socets
-const socket_worker = new thread.Worker(j(__dirname, "socket_worker.js"))
-*/
-
 
 /**
  * 
@@ -206,7 +200,7 @@ function newJoin(socket){
         //log("newJoin:")
         let inc_data = JSON.parse(json)
 
-
+        //some kind of sanitization
         socket.socket_info = {}
         socket.socket_info.hostname = inc_data.hostname.replace(clear_uimput_regexp, "");
         if(!color_uimput_regexp_test.test(inc_data.color)){
@@ -251,33 +245,10 @@ server.use((_req, _res, next) => {
     next()
 })
 
-startHttpsServer(https, server, PORT)
-
-server_socket.on("connection", newJoin)
-
-
-function startHttpsServer(https, app, PORT){
-    //create and listen to https server
-    server_socket = new socket.Server(
-        https
-        .createServer(
-                // Provide the private and public key to the server by reading each
-                // file's content with the readFileSync() method.
-            {
-            key: fs.readFileSync("private/key.pem"),
-            cert: fs.readFileSync("private/cert.pem"),
-            },
-            app
-        )
-        .listen(PORT, () => {
-            log("serever is runing at port", PORT);
-        })
-    )
-}
-
 server.get("/socket.io/socket.io.js", (_req, res, _next) => {
     res.sendFile(j(__dirname, "node_modules/socket.io-client/dist/socket.io.js"))
 })
+
 //do with nginx
 /*
 server.get("/assets/*", (req, res, _next) => {
@@ -306,11 +277,11 @@ server.get("*", (req, res, _next) => {
     res.redirect("/online/join")
 })
 
-server.post("/online/host", (req, res) => {
+server.post("/online/host", (req, res, _next) => {
     //log(req.body)
     //create a new game
     if(req.body.hostname == undefined){throw "game not defined"}
-    if(games[req.body.hostname] != undefined){/*game exists*/ throw "game exists"}
+    if(games[req.body.hostname] != undefined){throw "game exists"}
 
     let createdGame = new newGame(req)
     games[createdGame.hostname] = createdGame
@@ -322,3 +293,12 @@ server.post("/online/host", (req, res) => {
 server.post("*", (_req, res, _next) => {
     res.send("We dont do that here")
 })
+
+server_socket = new socket.Server(
+    //listen call returns the server instance
+    server.listen(PORT, () => {
+        log(`Running on port ${PORT}`)
+    })
+)
+
+server_socket.on("connection", newJoin)
