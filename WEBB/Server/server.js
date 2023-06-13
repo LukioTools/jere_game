@@ -278,9 +278,13 @@ function startHttpsServer(https, app, PORT){
 server.get("/socket.io/socket.io.js", (_req, res, _next) => {
     res.sendFile(j(__dirname, "node_modules/socket.io-client/dist/socket.io.js"))
 })
+//do with nginx
+/*
 server.get("/assets/*", (req, res, _next) => {
     res.sendFile(j(__dirname, req.path))
 })
+*/
+
 server.get("/online/join", (_req, res, _next) => {
     res.sendFile(j(__dirname, "/assets/join.html"))
 
@@ -305,7 +309,7 @@ server.get("*", (req, res, _next) => {
 server.post("/online/host", (req, res) => {
     //log(req.body)
     //create a new game
-    if( req.body.hostname == undefined){throw "game not defined"}
+    if(req.body.hostname == undefined){throw "game not defined"}
     if(games[req.body.hostname] != undefined){/*game exists*/ throw "game exists"}
 
     let createdGame = new newGame(req)
