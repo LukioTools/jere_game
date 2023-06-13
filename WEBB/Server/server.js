@@ -4,6 +4,10 @@
  */
 let server_socket;
 
+const verbose = false;
+
+const clear_uimput_regexp = /[^0-9A-Z]/gi
+const color_uimput_regexp_test = /^#(?:[0-9a-fA-F]{3}){1,2}$/
 
 const express = require("express")
 const server = express()
@@ -11,12 +15,10 @@ const https = require("https")
 const fs = require("fs")
 const path = require("path")
 const j = path.join
-
-
 const socket = require("socket.io")
 
-const bParse = require("body-parser")
-const base_socket = "/socket/"
+
+const PORT = 5555
 
 /**
  * @type {[newGame]}
@@ -24,13 +26,18 @@ const base_socket = "/socket/"
 let games = {}
 
 
+function log(val){
+    if(verbose){
+        console.log(val);
+    }
+}
+
 class newGame{
     /**
      * 
      * @param {*} req 
-     * @param {socket.Server} socket 
      */
-    constructor(req, socket){
+    constructor(req){
         /**
          * @type {[socket.Socket]}
          */
@@ -45,7 +52,7 @@ class newGame{
             this.status = "No Hostname"
             return 0
         }
-        if(req.body.hostname == undefined){
+        if(req.body.password == undefined){
             this.status = "No Password"
             return 0
         }
@@ -55,22 +62,21 @@ class newGame{
         if(req.body.y== undefined){
             throw new Error("no y")
         }
-
-        this.hostname = req.body.hostname
-        this.password = req.body.password
+        this.hostname = req.body.hostname.replace(clear_uimput_regexp, "")
+        this.password = req.body.password.replace(clear_uimput_regexp, "")
 
         this.x = parseInt(req.body.x)
         this.y = parseInt(req.body.y)
 
-        if(this.x < 1){
+        if(this.x < 1 || this.x > 1024){
             throw new Error("wrong x")
         }
-        if(this.y < 1){
+        if(this.y < 1 || this.y > 1024){
             throw new Error("wrong y")
         }
 
-        console.log("Listeing..", j(base_socket, this.hostname))
-        this.socket_namespace = socket.of(j(base_socket, this.hostname))
+        //log("Listeing..", j(base_socket, this.hostname))
+        //this.socket_namespace = socket.of(j(base_socket, this.hostname))
     }
 
     broadCast(event, message){
@@ -85,8 +91,9 @@ class newGame{
      */
     acceptConnection(incoming_socket){
         if(this.joinable){
-            //console.log(incoming_socket.socket_info)
+            //log(incoming_socket.socket_info)
             if(incoming_socket.socket_info.password == this.password){
+                incoming_socket.socket_info.host = false
                 if(this.connecions.length == 0){
                     incoming_socket.socket_info.host = true
                     incoming_socket.once("start", () => {
@@ -95,15 +102,17 @@ class newGame{
                             const socket = this.connecions[index];
                             socket.emit("start", "the game begisns")
                         }
-                        console.log("startGame")
+                        //log("startGame")
                         this.start()
                     }) 
                 }
                 this.connecions.push(incoming_socket)
-                incoming_socket.emit("success", JSON.stringify({
+                let shit = JSON.stringify({
                     x:this.x,
                     y:this.y
-                }))
+                })
+                //log(shit)
+                incoming_socket.emit("success", shit)
                 let json_ls = [];
                 for (let index = 0; index < this.connecions.length; index++) {
                     const element = this.connecions[index];
@@ -113,7 +122,7 @@ class newGame{
                 this.broadCast("players", js_str)
             }
             else{
-                console.log("destroying socket")
+                log("destroying socket")
                 incoming_socket.disconnect()
             }
         }        
@@ -121,18 +130,25 @@ class newGame{
     disconnectSocket(socket){
         
         const index = this.connecions.indexOf(socket);
-        console.log("disconnected", socket.socket_info)
+        //log("disconnected", socket.socket_info)
         if (index > -1) { 
             this.connecions.splice(index, 1); // 1 is for only 1
         }
         else{
-            console.log("no splice")
+            log("no splice")
         }
+
+        if(socket.socket_info.host){
+            this.connecions[0].socket_info.host = true;
+        }
+
         socket.disconnect()
-        console.log(this.connecions.length)
+        log(this.connecions.length)
         if(this.connecions.length == 0){
             this.end()
         }
+
+        
     }
     async start(){
         while(true){
@@ -145,7 +161,7 @@ class newGame{
                     username: element.socket_info.username, 
                     color: element.socket_info.color
                 }))
-                console.log("waitting", element.socket_info.username)
+                //log("waitting", element.socket_info.username)
                 element.emit("thisturn", true)
                 let coord = await this.waitSelection(element)
                 coord.color = element.socket_info.color
@@ -160,7 +176,7 @@ class newGame{
      * @param {socket.RemoteSocket} socket 
      */
     async waitSelection(socket){
-        return new Promise((res, rej) => {
+        return new Promise((res, _rej) => {
             socket.once("selected", (coord_str) => {
                 res(JSON.parse(coord_str))
             })
@@ -168,7 +184,7 @@ class newGame{
     }
 
     end(){
-        console.log("end")
+        log("end")
         games[this.hostname] = undefined
     }
 }
@@ -181,15 +197,30 @@ const socket_worker = new thread.Worker(j(__dirname, "socket_worker.js"))
 */
 
 
-
+/**
+ * 
+ * @param {socket.Socket} socket 
+ */
 function newJoin(socket){
-
     socket.once("join", (json) => {
-        console.log("newJoin:")
-        socket.socket_info = JSON.parse(json)
+        //log("newJoin:")
+        let inc_data = JSON.parse(json)
+
+
+        socket.socket_info = {}
+        socket.socket_info.hostname = inc_data.hostname.replace(clear_uimput_regexp, "");
+        if(!color_uimput_regexp_test.test(inc_data.color)){
+            throw new Error("color was not a hex color value")
+        }
+        socket.socket_info.color = inc_data.color;
+        socket.socket_info.username = inc_data.username.replace(clear_uimput_regexp, "");
+        socket.socket_info.password = inc_data.password.replace(clear_uimput_regexp, "");
+
+
         let da_agme = games[socket.socket_info.hostname]
         if(da_agme == undefined){
-            console.log("no correct host found")
+            log("no correct host found")
+            socket.emit("nohost", "true")
             socket.disconnect()
             return 0
         }
@@ -210,14 +241,13 @@ function newJoin(socket){
 }
 
 
-let connecions = []
+//let connecions = []
 
-const PORT = 8080
 server.use(express.urlencoded({extended: true}))
 server.use(express.json({extended: true}))
-server.use((req, res, next) => {
-    //console.log(req.body)
-    //console.log(req.query)
+server.use((_req, _res, next) => {
+    //log(req.body)
+    //log(req.query)
     next()
 })
 
@@ -240,45 +270,51 @@ function startHttpsServer(https, app, PORT){
             app
         )
         .listen(PORT, () => {
-            console.log("serever is runing at port", PORT);
+            log("serever is runing at port", PORT);
         })
     )
 }
 
-server.get("/socket.io/socket.io.js", (req, res, next) => {
+server.get("/socket.io/socket.io.js", (_req, res, _next) => {
     res.sendFile(j(__dirname, "node_modules/socket.io-client/dist/socket.io.js"))
 })
-server.get("/assets/*", (req, res, next) => {
+server.get("/assets/*", (req, res, _next) => {
     res.sendFile(j(__dirname, req.path))
 })
-server.get("/online/join", (req, res, next) => {
+server.get("/online/join", (_req, res, _next) => {
     res.sendFile(j(__dirname, "/assets/join.html"))
 
 })
-server.get("/online/host", (req, res, next) => {
+server.get("/online/host", (_req, res, _next) => {
     //create a new game
     res.sendFile(j(__dirname, "/assets/host.html"))
 })
-server.get("/offline/*", (req, res, next) => {
+server.get("/offline/*", (_req, res, _next) => {
     //create a new game
     res.sendFile(j(__dirname, "/assets/index.html"))
 })
+server.get("/favicon.ico", (_req, res, _next) => {
+    res.sendStatus(404);
+})
 
-server.get("*", (req, res, next) => {
+server.get("*", (req, res, _next) => {
+    //log(req.path);
     res.redirect("/online/join")
 })
 
-server.post("/online/host", (req, res, next) => {
-    console.log(req.body)
+server.post("/online/host", (req, res) => {
+    //log(req.body)
     //create a new game
     if( req.body.hostname == undefined){throw "game not defined"}
     if(games[req.body.hostname] != undefined){/*game exists*/ throw "game exists"}
 
-    games[req.body.hostname] = new newGame(req, server_socket)
-    res.send(JSON.stringify({path: j("/socket/join/", req.body.hostname)}))
+    let createdGame = new newGame(req)
+    games[createdGame.hostname] = createdGame
+
+    res.send(JSON.stringify("Created Da boi"))
 })
 
 
-server.post("*", (req, res, next) => {
+server.post("*", (_req, res, _next) => {
     res.send("We dont do that here")
 })
