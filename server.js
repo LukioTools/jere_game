@@ -9,8 +9,8 @@ let server_socket;
  */
 let games = {}
 
-const start_minutes = 1000*30//2*60*1000;
-const turn_minutes = 1000*10//1*60*1000;
+const start_minutes = 2*60*1000;
+const turn_minutes = 1*60*1000;
 
 
 
