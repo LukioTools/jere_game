@@ -43,7 +43,6 @@ function log(val){
 }
 
 function startGame(game){
-    console.log(game.joinable)
     if(game.joinable == false){
         //the game is already started
     }
@@ -252,7 +251,7 @@ class newGame{
         return new Promise((res, _rej) => {
             let timeout = setTimeout(() => {
 
-                console.log(this.connecions)
+                log(this.connecions)
                 socket.emit("timeout", "Your Turn had timed out..")
                 this.disconnectSocket(socket)
 
