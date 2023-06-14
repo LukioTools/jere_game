@@ -9,15 +9,16 @@ let server_socket;
  */
 let games = {}
 
+const start_minutes = 1000*30//2*60*1000;
+const turn_minutes = 1000*10//1*60*1000;
+
 
 
 const PORT = 5555
-const verbose = false;
+const verbose = true;
 
 const clear_uimput_regexp = /[^0-9A-Z]/gi
 const color_uimput_regexp_test = /^#(?:[0-9a-fA-F]{3}){1,2}$/
-
-
 
 
 const express = require("express")
@@ -26,10 +27,33 @@ const path = require("path")
 const j = path.join
 const socket = require("socket.io")
 
+/**
+ * 
+ * @param {newGame} da_agme 
+ */
+function startTimeout(da_agme){
+    return setTimeout(startGame, start_minutes, da_agme);
+}
+
 
 function log(val){
     if(verbose){
         console.log(val);
+    }
+}
+
+function startGame(game){
+    console.log(game.joinable)
+    if(game.joinable == false){
+        //the game is already started
+    }
+    else{
+        game.joinable = false
+        for (let index = 0; index < game.connecions.length; index++) {
+            const socket = game.connecions[index];
+            socket.emit("start", "the game begisns")
+        }
+        game.start()
     }
 }
 
@@ -45,6 +69,7 @@ class newGame{
         this.connecions = []
         this.joinable = true
         this.status = 0
+        this.startTimeout = undefined;
         if(req.body == undefined){
             this.status = "No Body"
             return 0
@@ -75,9 +100,56 @@ class newGame{
         if(this.y < 1 || this.y > 1024){
             throw new Error("wrong y")
         }
+        
 
         //log("Listeing..", j(base_socket, this.hostname))
         //this.socket_namespace = socket.of(j(base_socket, this.hostname))
+    }
+
+
+    renewTimeout(){
+        //the timeout renews
+        clearTimeout(this.startTimeout)
+        this.startTimeout = setTimeout(startGame, start_minutes, this);
+        this.broadCast("startTime", start_minutes)
+    }
+
+    appendConnection(incoming_socket){
+        this.connecions.push(incoming_socket)
+        let shit = JSON.stringify({
+            x:this.x,
+            y:this.y,
+            turn: turn_minutes
+        })
+        //log(shit)
+        incoming_socket.emit("success", shit)
+        let json_ls = [];
+        for (let index = 0; index < this.connecions.length; index++) {
+            const element = this.connecions[index];
+            json_ls.push(element.socket_info)
+        }
+        let js_str = JSON.stringify(json_ls)
+        this.broadCast("players", js_str)
+    }
+
+    setHost(incoming_socket){
+        incoming_socket.socket_info.host = false
+        if(this.connecions.length == 0){
+            incoming_socket.socket_info.host = true
+            incoming_socket.once("start", () => {startGame(this)})  
+            return true
+        }
+        return false
+    }
+
+    connectionCheck(incoming_socket){
+        if(this.joinable){
+            if(incoming_socket.socket_info.password == this.password){
+                return true
+            }
+        }
+        return false
+
     }
 
     broadCast(event, message){
@@ -87,49 +159,22 @@ class newGame{
         }
     }
     /**
-     * 
      * @param {socket.Socket} incoming_socket 
      */
-    acceptConnection(incoming_socket){
-        if(this.joinable){
-            //log(incoming_socket.socket_info)
-            if(incoming_socket.socket_info.password == this.password){
-                incoming_socket.socket_info.host = false
-                if(this.connecions.length == 0){
-                    incoming_socket.socket_info.host = true
-                    incoming_socket.once("start", () => {
-                        this.joinable = false
-                        for (let index = 0; index < this.connecions.length; index++) {
-                            const socket = this.connecions[index];
-                            socket.emit("start", "the game begisns")
-                        }
-                        //log("startGame")
-                        this.start()
-                    }) 
-                }
-                this.connecions.push(incoming_socket)
-                let shit = JSON.stringify({
-                    x:this.x,
-                    y:this.y
-                })
-                //log(shit)
-                incoming_socket.emit("success", shit)
-                let json_ls = [];
-                for (let index = 0; index < this.connecions.length; index++) {
-                    const element = this.connecions[index];
-                    json_ls.push(element.socket_info)
-                }
-                let js_str = JSON.stringify(json_ls)
-                this.broadCast("players", js_str)
-            }
-            else{
-                log("destroying socket")
-                incoming_socket.disconnect()
-            }
-        }        
+    acceptConnectionV2(socket){
+        if(this.connectionCheck == false){
+            this.disconnectSocket(socket)
+            return false
+        }
+        this.setHost(socket)
+        this.appendConnection(socket)
+        this.renewTimeout()
+        return true
     }
+
     disconnectSocket(socket){
-        
+        log(this.connecions)
+        log(socket)
         const index = this.connecions.indexOf(socket);
         //log("disconnected", socket.socket_info)
         if (index > -1) { 
@@ -149,11 +194,36 @@ class newGame{
 
         socket.disconnect()
         
+    }
 
+    disconnectSocketList(socket, connecions){
+        log(connecions)
+        log(socket)
+        const index = connecions.indexOf(socket);
+        //log("disconnected", socket.socket_info)
+        if (index > -1) { 
+            connecions.splice(index, 1); // 1 is for only 1
+        }
+        else{
+            log("no splice")
+        }
+        log(connecions.length)
+        if(connecions.length == 0){
+            this.end()
+        }
+        //the game not end
+        else if(socket.socket_info.host){
+            connecions[0].socket_info.host = true;
+        }
+
+        socket.disconnect()
         
     }
+
+
     async start(){
         while(true){
+            //gameloop
             for (let index = 0; index < this.connecions.length; index++) {
                 /**
                  * @type {socket.Socket}
@@ -163,11 +233,12 @@ class newGame{
                     username: element.socket_info.username, 
                     color: element.socket_info.color
                 }))
-                //log("waitting", element.socket_info.username)
+                    //log("waitting", element.socket_info.username)
                 element.emit("thisturn", true)
+                
                 let coord = await this.waitSelection(element)
-                coord.color = element.socket_info.color
-                coord.username = element.socket_info.username
+                coord.color = element.socket_info.color; coord.username = element.socket_info.username;
+
                 this.broadCast("place", JSON.stringify(coord))
             }
         }
@@ -179,8 +250,18 @@ class newGame{
      */
     async waitSelection(socket){
         return new Promise((res, _rej) => {
+            let timeout = setTimeout(() => {
+
+                console.log(this.connecions)
+                socket.emit("timeout", "Your Turn had timed out..")
+                this.disconnectSocket(socket)
+
+                res({x: null, y: null})
+
+            }, turn_minutes)
             socket.once("selected", (coord_str) => {
                 res(JSON.parse(coord_str))
+                clearTimeout(timeout);
             })
         })
     }
@@ -191,6 +272,18 @@ class newGame{
     }
 }
 
+function setAndClean(socket, inc_data){
+    //some kind of sanitization
+    socket.socket_info = {}
+    socket.socket_info.hostname = inc_data.hostname.replace(clear_uimput_regexp, "");
+    if(!color_uimput_regexp_test.test(inc_data.color)){
+        throw new Error("color was not a hex color value")
+    }
+    socket.socket_info.color = inc_data.color;
+    socket.socket_info.username = inc_data.username.replace(clear_uimput_regexp, "");
+    socket.socket_info.password = inc_data.password.replace(clear_uimput_regexp, "");
+}
+
 /**
  * 
  * @param {socket.Socket} socket 
@@ -198,18 +291,7 @@ class newGame{
 function newJoin(socket){
     socket.once("join", (json) => {
         //log("newJoin:")
-        let inc_data = JSON.parse(json)
-
-        //some kind of sanitization
-        socket.socket_info = {}
-        socket.socket_info.hostname = inc_data.hostname.replace(clear_uimput_regexp, "");
-        if(!color_uimput_regexp_test.test(inc_data.color)){
-            throw new Error("color was not a hex color value")
-        }
-        socket.socket_info.color = inc_data.color;
-        socket.socket_info.username = inc_data.username.replace(clear_uimput_regexp, "");
-        socket.socket_info.password = inc_data.password.replace(clear_uimput_regexp, "");
-
+        setAndClean(socket, JSON.parse(json))
 
         let da_agme = games[socket.socket_info.hostname]
         if(da_agme == undefined){
@@ -218,7 +300,7 @@ function newJoin(socket){
             socket.disconnect()
             return 0
         }
-        da_agme.acceptConnection(socket)
+        da_agme.acceptConnectionV2(socket)
     })
 
     socket.once("disconnect", () => {
@@ -285,6 +367,7 @@ server.post("/online/host", (req, res, _next) => {
 
     let createdGame = new newGame(req)
     games[createdGame.hostname] = createdGame
+    //timeout that bitch
 
     res.send(JSON.stringify("Created Da boi"))
 })
