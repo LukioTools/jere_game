@@ -210,7 +210,6 @@ function updateBar(){
 
     let bg = $("body")
     bg.css("background-color", players[player_turn].color)
-
 }
 
 function updatePlayer(){

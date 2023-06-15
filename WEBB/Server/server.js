@@ -4,6 +4,9 @@
  */
 let server_socket;
 
+
+//TODO send data when ending game
+
 /**
  * @type {[newGame]}
  */
@@ -16,7 +19,7 @@ const clean_inter_ns = 5*1000;
 const game_max_alive = 20*1000;
 
 const PORT = 5555
-const verbose = false;
+const verbose = true;
 
 const clear_uimput_regexp = /[^0-9a-zA-Z]/g
 const color_uimput_regexp_test = /^#(?:[0-9a-fA-F]{3}){1,2}$/
@@ -107,14 +110,21 @@ class newGame{
     }
 
     appendConnection(incoming_socket){
+        //append connection
         this.connecions.push(incoming_socket)
-        let shit = JSON.stringify({
+
+        //send the data
+        let success_data = JSON.stringify({
             x:this.x,
             y:this.y,
-            turn: turn_ns
+            turn: turn_ns,
+            serverCreation: this.creationTime,
+            serverAlive: game_max_alive,
+            host: incoming_socket.socket_info.host
         })
-        //log(shit)
-        incoming_socket.emit("success", shit)
+        incoming_socket.emit("success", success_data)
+
+        //broadcast players
         let json_ls = [];
         for (let index = 0; index < this.connecions.length; index++) {
             const element = this.connecions[index];
@@ -338,7 +348,7 @@ for (let index = 0; index < process.argv.length; index++) {
 
 //do with nginx
 if(nginx_bool == false){
-    log("Running on standalone mode")
+    console.log("Running on standalone mode")
 
     server.get("/socket.io/socket.io.js", (_req, res, _next) => {
         res.sendFile(j(__dirname, "node_modules/socket.io-client/dist/socket.io.js"))

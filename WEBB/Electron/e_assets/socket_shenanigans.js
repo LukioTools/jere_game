@@ -36,10 +36,7 @@ waitForLoad()
 function join(){
     if(document.getElementById("ip").value != undefined)
     {server_url = document.getElementById("ip").value}
-
-    
-
-        soc = io(server_url)
+    soc = io(server_url)
     
     soc.on('connect_error', function(err) {
         // handle server error here
@@ -67,21 +64,29 @@ function join(){
         }
     })
     soc.on("players", (players_string) => {
+        //incoming players
         let players_json = JSON.parse(players_string)
-        let el = document.getElementById("lobby_players")
-        el.innerHTML = ""
-        let jqEl = $(el)
-        console.log(players_json)
+        let players_html = "";
         for (let index = 0; index < players_json.length; index++) {
             const element = players_json[index];
-            jqEl.append(`<p class="player" style="background-color: ${element.color};">${element.username}</p>`)
+            players_html += `<p class="player" style="background-color: ${element.color};">${element.username}</p>`
         }
+        let el = document.getElementById("lobby_players")
+
+        el.innerHTML = players_html
+
+        console.log(players_json)
     })
+
+
+    //when starts show board
     soc.once("start", () => {
         console.log("Starting...")
         $(".lobby").addClass("dn")
         showGameBoard()
     })
+
+    
     soc.on("thisturn", () => {
         turn = true
     })
