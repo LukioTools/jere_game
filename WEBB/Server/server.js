@@ -6,6 +6,7 @@ let server_socket;
 
 
 //TODO send data when ending game
+//TODO multiple destroy notices and timeouts should be closded before ending the games
 
 /**
  * @type {[newGame]}
