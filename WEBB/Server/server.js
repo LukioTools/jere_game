@@ -180,7 +180,7 @@ class newGame{
 
     disconnectSocket(socket){
         log(this.connecions)
-        log(socket)
+        //log(socket)
         const index = this.connecions.indexOf(socket);
         //log("disconnected", socket.socket_info)
         if (index > -1) { 
