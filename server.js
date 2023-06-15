@@ -12,8 +12,11 @@ let games = {}
 const start_ns = 2*60*1000;
 const turn_ns = 1*60*1000;
 
+const clean_inter_ns = 5*1000;
+const game_max_alive = 20*1000;
+
 const PORT = 5555
-const verbose = true;
+const verbose = false;
 
 const clear_uimput_regexp = /[^0-9a-zA-Z]/g
 const color_uimput_regexp_test = /^#(?:[0-9a-fA-F]{3}){1,2}$/
@@ -59,6 +62,7 @@ class newGame{
         this.connecions = []
         this.joinable = true
         this.startTimeout = undefined;
+        this.creationTime = Date.now()
 
 
         if(req.body == undefined){
@@ -180,7 +184,7 @@ class newGame{
             this.connecions[0].socket_info.host = true;
         }
 
-        socket.disconnect()
+        socket.disconnect(true)
         
     }
 
@@ -204,7 +208,7 @@ class newGame{
             connecions[0].socket_info.host = true;
         }
 
-        socket.disconnect()
+        socket.disconnect(true)
         
     }
 
@@ -255,7 +259,15 @@ class newGame{
     }
 
     end(){
-        log("end")
+        console.log("end")
+        console.log(this.connecions.length)
+        //disconnect the mf
+        for (let index = 0; index < this.connecions.length; index++) {
+            const socket = this.connecions[index];
+            
+            socket.emit("end", "true");
+            socket.disconnect(true);
+        }
         delete games[this.hostname]
     }
 }
@@ -285,7 +297,7 @@ function newJoin(socket){
         if(da_agme == undefined){
             log("no correct host found")
             socket.emit("nohost", "true")
-            socket.disconnect()
+            socket.disconnect(true)
             return 0
         }
         da_agme.acceptConnectionV2(socket)
@@ -293,7 +305,7 @@ function newJoin(socket){
 
     socket.once("disconnect", () => {
         if(socket.socket_info == undefined){
-            socket.disconnect()
+            socket.disconnect(true)
         }
         else{
             let da_agme = games[socket.socket_info.hostname]
@@ -315,10 +327,7 @@ server.use((_req, _res, next) => {
     next()
 })
 
-server.get("/socket.io/socket.io.js", (_req, res, _next) => {
-    res.sendFile(j(__dirname, "node_modules/socket.io-client/dist/socket.io.js"))
-})
-//do with nginx
+
 let nginx_bool = false
 for (let index = 0; index < process.argv.length; index++) {
     const element = process.argv[index];
@@ -327,29 +336,37 @@ for (let index = 0; index < process.argv.length; index++) {
     };
 }
 
-
+//do with nginx
 if(nginx_bool == false){
     log("Running on standalone mode")
+
+    server.get("/socket.io/socket.io.js", (_req, res, _next) => {
+        res.sendFile(j(__dirname, "node_modules/socket.io-client/dist/socket.io.js"))
+    })
+
     server.get("/assets/*", (req, res, _next) => {
         res.sendFile(j(__dirname, req.path))
     })
+
+    server.get("/online/join", (_req, res, _next) => {
+        res.sendFile(j(__dirname, "/assets/join.html"))
+
+    })
+
+    server.get("/offline/*", (_req, res, _next) => {
+        //create a new game
+        res.sendFile(j(__dirname, "/assets/index.html"))
+    })
+    server.get("/favicon.ico", (_req, res, _next) => {
+        res.sendStatus(404);
+    })
+
 }
 
 
-server.get("/online/join", (_req, res, _next) => {
-    res.sendFile(j(__dirname, "/assets/join.html"))
-
-})
 server.get("/online/host", (_req, res, _next) => {
     //create a new game
     res.sendFile(j(__dirname, "/assets/host.html"))
-})
-server.get("/offline/*", (_req, res, _next) => {
-    //create a new game
-    res.sendFile(j(__dirname, "/assets/index.html"))
-})
-server.get("/favicon.ico", (_req, res, _next) => {
-    res.sendStatus(404);
 })
 
 server.get("*", (req, res, _next) => {
@@ -383,3 +400,18 @@ server_socket = new socket.Server(
 )
 
 server_socket.on("connection", newJoin)
+
+
+setInterval(() => {
+    console.log("cleaning")
+    for (let key in games) {
+        let game =  games[key]
+        console.log(Date.now() - game.creationTime, game_max_alive)
+        if(Date.now() - game.creationTime > game_max_alive){
+            console.log("ending");
+            console.log(game.hostname);
+            game.end();
+            
+        }        
+    }
+}, clean_inter_ns)

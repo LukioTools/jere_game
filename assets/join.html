@@ -97,6 +97,11 @@
                 //console.log(cc)
                 placeOnBoard(parseInt(cc.x), parseInt(cc.y), cc.color)
             })
+            soc.once("end", () => {
+                turn = false
+                console.log("ending..")
+                soc.disconnect(true)
+            })
         }
         function start(){
             soc.emit("start", "true")
