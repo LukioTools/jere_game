@@ -9,15 +9,13 @@ let server_socket;
  */
 let games = {}
 
-const start_minutes = 2*60*1000;
-const turn_minutes = 1*60*1000;
-
-
+const start_ns = 2*60*1000;
+const turn_ns = 1*60*1000;
 
 const PORT = 5555
 const verbose = true;
 
-const clear_uimput_regexp = /[^0-9A-Z]/gi
+const clear_uimput_regexp = /[^0-9a-zA-Z]/g
 const color_uimput_regexp_test = /^#(?:[0-9a-fA-F]{3}){1,2}$/
 
 
@@ -27,13 +25,6 @@ const path = require("path")
 const j = path.join
 const socket = require("socket.io")
 
-/**
- * 
- * @param {newGame} da_agme 
- */
-function startTimeout(da_agme){
-    return setTimeout(startGame, start_minutes, da_agme);
-}
 
 
 function log(val){
@@ -67,19 +58,17 @@ class newGame{
          */
         this.connecions = []
         this.joinable = true
-        this.status = 0
         this.startTimeout = undefined;
+
+
         if(req.body == undefined){
-            this.status = "No Body"
-            return 0
+            throw new Error("No Body")
         }
         if(req.body.hostname == undefined){
-            this.status = "No Hostname"
-            return 0
+            throw new Error("No Hostname")
         }
         if(req.body.password == undefined){
-            this.status = "No Password"
-            return 0
+            throw new Error("No Password")
         }
         if(req.body.x == undefined){
             throw new Error("no x")
@@ -109,8 +98,8 @@ class newGame{
     renewTimeout(){
         //the timeout renews
         clearTimeout(this.startTimeout)
-        this.startTimeout = setTimeout(startGame, start_minutes, this);
-        this.broadCast("startTime", start_minutes)
+        this.startTimeout = setTimeout(startGame, start_ns, this);
+        this.broadCast("startTime", start_ns)
     }
 
     appendConnection(incoming_socket){
@@ -118,7 +107,7 @@ class newGame{
         let shit = JSON.stringify({
             x:this.x,
             y:this.y,
-            turn: turn_minutes
+            turn: turn_ns
         })
         //log(shit)
         incoming_socket.emit("success", shit)
@@ -257,7 +246,7 @@ class newGame{
 
                 res({x: null, y: null})
 
-            }, turn_minutes)
+            }, turn_ns)
             socket.once("selected", (coord_str) => {
                 res(JSON.parse(coord_str))
                 clearTimeout(timeout);
