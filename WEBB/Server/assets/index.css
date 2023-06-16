@@ -18,8 +18,26 @@ body {
     background-color: inherit;
     margin: 0px;
     padding: 0px;
+    display: flex;
+}
+table{
+    width: 100%;
 }
 
+table, tbody, tr, th, td{
+    border-width: 1px;
+    border-color: var(--text-white);
+    border-style: solid;
+    border-collapse: collapse;
+    text-align: center;
+    padding: 1px 5px;
+}
+
+
+td{
+
+    background-color: var(--theme-main-dark-bit);
+}
 .maingrid {
     display: grid;
     max-height: 100%;
@@ -75,7 +93,7 @@ a {
 
 .column {
     width: fit-content;
-    margin: auto;
+    margin: 0px 5vw;
     padding: 0px 5vw;
     height: fit-content;
     min-height: 100%;
@@ -212,9 +230,7 @@ input[type="text"]::placeholder {
     -ms-user-select: none;
 }
 
-.dn {
-    display: none;
-}
+
 
 .captured {
     border-color: azure;
@@ -236,4 +252,30 @@ input[type="text"]::placeholder {
     flex-flow: column;
     align-items: center;
     align-content: center;
+}
+
+
+.matchmaking {
+    /*! float: left; */width: fit-content;
+    height: 100vh;
+    display: flex;
+    flex-flow: column;
+    /*! flex-basis: ; *//*! flex-grow: ; *//*! padding-top: 25vh; */align-items: center;
+    justify-content: center;
+    background-color: var(--theme-main-dark-er);
+    padding: 0px 5vw;
+}
+   
+
+
+
+
+
+
+
+
+
+
+.dn {
+    display: none !important;
 }

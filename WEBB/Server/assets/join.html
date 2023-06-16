@@ -11,10 +11,20 @@
     <script src="https://code.jquery.com/jquery-3.6.4.js" integrity="sha256-a9jBBRygX1Bh5lt8GZjXDzyOB+bWve9EiO7tROUtj/E=" crossorigin="anonymous"></script>
     <script src="/assets/stripped_index.js"></script>
     <script src="/assets/socket_client.js"></script>
+    <script src="/assets/matchmaking.js"></script>
     <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1057572452821063"
      crossorigin="anonymous"></script>
 </head>
 <body>
+    <div class="matchmaking" id="matchmaking">
+        <div class="mmopts" id="mmopts">
+            <input type="text" name="search_hostname" id="search_hostname" placeholder="Search">
+            <input type="checkbox" name="box_password" id="box_password">
+            <input type="button" value="Refresh" onclick="matchmaking()">
+        </div>
+        <table class="matches" id="matches">
+        </table>
+    </div>
     <div class="start starter column join_inputs">
         <div class="server_settings board">
             <input type="text" name="hostname" id="hostname" placeholder="Hostname">

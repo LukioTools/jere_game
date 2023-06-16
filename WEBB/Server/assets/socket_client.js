@@ -92,7 +92,7 @@ waitForLoad()
 })
 
 
-function join() {
+function join(input_element = null) {
     //set som shit
     playerCountdown_elemet = document.getElementById("countdown")
     serverCountdown_elemet = document.getElementById("serveralive")
@@ -100,6 +100,7 @@ function join() {
 
 
     //join the session 
+
     soc = io(server_url)
 
     soc.on('connect_error', function(err) {
@@ -109,14 +110,26 @@ function join() {
         soc.destroy()
         return -1
     });
-
-    //joindata
-    const join_data = {
-        hostname: document.getElementById("hostname").value,
-        password: document.getElementById("password").value,
-        username: document.getElementById("username").value,
-        color: document.getElementById("color").value
+    let join_data;
+    if (input_element == null){
+        console.log("normal");
+        join_data = {
+            hostname: document.getElementById("hostname").value,
+            password: document.getElementById("password").value,
+            username: document.getElementById("username").value,
+            color: document.getElementById("color").value
+        }
     }
+    else{
+        console.log("cringe");
+        //handles popups and such
+        join_data = matchmaking_parse(input_element)
+        if(join_data == -1){
+            soc.destroy()
+            return -1;
+        }
+    }
+    //joindata
     console.log("join_data", join_data)
     soc.emit("join", JSON.stringify(join_data))
 
@@ -135,6 +148,7 @@ function join() {
         //show lobby 
         $(".lobby").removeClass("dn");
 
+        $("#matchmaking").addClass("dn")
         //show start button if youre the host
         if (server_data.host == true) {
             $(".start_btn").removeClass("dn");

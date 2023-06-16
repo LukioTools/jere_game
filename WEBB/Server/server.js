@@ -304,6 +304,19 @@ class newGame{
 
 function setAndClean(socket, inc_data){
     //some kind of sanitization
+    if(inc_data.hostname == undefined || inc_data.hostname == ""){
+        return "hostname was not defined"
+    }
+    if(inc_data.username == undefined || inc_data.username == ""){
+        return "username was not defined"
+    }
+    if(inc_data.password == undefined){
+        return "password was not defined"
+    }
+    if(inc_data.color == undefined || inc_data.color == ""){
+        return "color was not defined"
+    }
+
     socket.socket_info = {}
     socket.socket_info.hostname = inc_data.hostname.replace(clear_uimput_regexp, "");
     if(!color_uimput_regexp_test.test(inc_data.color)){
@@ -312,6 +325,7 @@ function setAndClean(socket, inc_data){
     socket.socket_info.color = inc_data.color;
     socket.socket_info.username = inc_data.username.replace(clear_uimput_regexp, "");
     socket.socket_info.password = inc_data.password.replace(clear_uimput_regexp, "");
+    return null
 }
 
 /**
@@ -325,7 +339,13 @@ function newConnection(socket){
     socket.once("join", (json) => {
         clearTimeout(socket_join_timeout)
 
-        setAndClean(socket, JSON.parse(json))
+        let err = setAndClean(socket, JSON.parse(json))
+        if(err){
+            socket.emit("join_error", err)
+            console.log(err)
+            socket.disconnect(true)
+            return
+        }
 
         let da_agme = games[socket.socket_info.hostname]
         if(da_agme == undefined){
@@ -403,6 +423,24 @@ server.get("/online/host", (_req, res, _next) => {
     //create a new game
     res.sendFile(j(__dirname, "/assets/host.html"))
 })
+
+server.get("/online/matchmaking", (_req, res, _next) => { 
+    const mm = []
+    for (let key in games) {
+        const game = games[key]
+        if(game.ended == false && game.joinable == true){
+            mm.push({
+                hostname: game.hostname,
+                players: game.connecions.length,
+                password: game.password != "",
+            })
+        }
+    }       
+        
+    res.send(JSON.stringify(mm))
+}
+
+)
 
 server.get("*", (req, res, _next) => {
     //log(req.path);
