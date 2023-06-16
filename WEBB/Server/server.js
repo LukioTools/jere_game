@@ -19,7 +19,7 @@ const turn_ns = 1*10*1000;
 const clean_inter_ns = 1*1000;
 const game_max_alive = 240_000;
 
-const PORT = 22279;
+const PORT = 22255;
 const verbose = false;
 
 const clear_uimput_regexp = /[^0-9a-zA-Z]/g
