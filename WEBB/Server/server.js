@@ -13,14 +13,14 @@ let server_socket;
  */
 let games = {}
 
-const start_ns = 2*60*1000;
-const turn_ns = 1*60*1000;
+const start_ns = 120_000;
+const turn_ns = 1*10*1000;
 
-const clean_inter_ns = 5*1000;
-const game_max_alive = 20*1000;
+const clean_inter_ns = 1*1000;
+const game_max_alive = 240_000;
 
-const PORT = 5555
-const verbose = true;
+const PORT = 22279;
+const verbose = false;
 
 const clear_uimput_regexp = /[^0-9a-zA-Z]/g
 const color_uimput_regexp_test = /^#(?:[0-9a-fA-F]{3}){1,2}$/
@@ -36,15 +36,12 @@ const socket = require("socket.io")
 
 function log(val){
     if(verbose){
-        console.log(val);
+        log(val);
     }
 }
 
 function startGame(game){
-    if(game.joinable == false){
-        //the game is already started
-    }
-    else{
+    if(game.joinable == true){
         game.joinable = false
         for (let index = 0; index < game.connecions.length; index++) {
             const socket = game.connecions[index];
@@ -52,6 +49,7 @@ function startGame(game){
         }
         game.start()
     }
+    return 0
 }
 
 class newGame{
@@ -65,6 +63,7 @@ class newGame{
          */
         this.connecions = []
         this.joinable = true
+        this.ended = false
         this.creationTime = Date.now()
         this.timeout = undefined;
         this.startTimeout = undefined;
@@ -103,10 +102,11 @@ class newGame{
     }
 
     renewTimeout(){
+        //dont renew timeout
         //the timeout renews
-        clearTimeout(this.startTimeout)
-        this.startTimeout = setTimeout(startGame, start_ns, this);
-        this.broadCast("startTime", start_ns)
+        //clearTimeout(this.startTimeout)
+        //this.startTimeout = setTimeout(startGame, start_ns, this);
+        this.broadCast("startTime", (this.creationTime + start_ns))
     }
 
     appendConnection(incoming_socket){
@@ -179,7 +179,7 @@ class newGame{
     }
 
     disconnectSocket(socket){
-        log(this.connecions)
+        //log(this.connecions)
         //log(socket)
         const index = this.connecions.indexOf(socket);
         //log("disconnected", socket.socket_info)
@@ -189,20 +189,20 @@ class newGame{
         else{
             log("no splice")
         }
-        log(this.connecions.length)
+        socket.disconnect(true)
+
         if(this.connecions.length == 0){
+            this.ended = true;
             this.end("no more players")
         }
-        //the game not end
-        else if(socket.socket_info.host){
-            this.connecions[0].socket_info.host = true;
+        else{
+            if(socket.socket_info.host){
+                this.connecions[0].socket_info.host = true;
+            }
+            this.broadCastPlayers()
         }
-
-        this.broadCastPlayers()
-        socket.disconnect(true)
-        
     }
-
+    /*
     disconnectSocketList(socket, connecions){
         log(connecions)
         log(socket)
@@ -226,11 +226,17 @@ class newGame{
         socket.disconnect(true)
         
     }
+    */
 
 
     async start(){
         while(true){
             //gameloop
+            if(this.ended){return 0;}
+            if(this.connecions.length == 0){
+                this.end("no more players")
+                return 0;
+            }
             for (let index = 0; index < this.connecions.length; index++) {
                 /**
                  * @type {socket.Socket}
@@ -259,7 +265,8 @@ class newGame{
         return new Promise((res, _rej) => {
             this.timeout = setTimeout(() => {
 
-                log(this.connecions)
+                log("timeout")
+                //log(this.connecions)
                 socket.emit("timeout", "Your Turn had timed out..")
                 this.disconnectSocket(socket)
 
@@ -268,7 +275,7 @@ class newGame{
             }, turn_ns)
             socket.once("selected", (coord_str) => {
                 res(JSON.parse(coord_str))
-                clearTimeout(timeout);
+                clearTimeout(this.timeout);
             })
         })
     }
@@ -277,16 +284,20 @@ class newGame{
         clearTimeout(this.timeout)
         clearTimeout(this.startTimeout)
 
-        console.log("end")
-        console.log(this.connecions.length)
+        log("end", reason)
+        //log(this.connecions.length)
         //disconnect the mf
-        this.broadCast("end", reason)
-
-        //disconnect sockets
-        for (let index = 0; index < this.connecions.length; index++) {
-            const socket = this.connecions[index];
-            socket.disconnect(true);
+        if(this.connecions.length == 0){
+            this.broadCast("end", reason)
+            //disconnect sockets
+            for (let index = 0; index < this.connecions.length; index++) {
+                const socket = this.connecions[index];
+                socket.disconnect(true);
+            }
         }
+
+        log("delete", this.hostname)
+        //delete the game
         delete games[this.hostname]
     }
 }
@@ -362,7 +373,7 @@ for (let index = 0; index < process.argv.length; index++) {
 
 //do with nginx
 if(nginx_bool == false){
-    console.log("Running on standalone mode")
+    log("Running on standalone mode")
 
     server.get("/socket.io/socket.io.js", (_req, res, _next) => {
         res.sendFile(j(__dirname, "node_modules/socket.io-client/dist/socket.io.js"))
@@ -399,14 +410,18 @@ server.get("*", (req, res, _next) => {
 })
 
 server.post("/online/host", (req, res, _next) => {
-    //log(req.body)
-    //create a new game
-    if(req.body.hostname == undefined){throw "game not defined"}
-    if(games[req.body.hostname] != undefined){throw "game exists"}
+    log()
+    if(req.body.hostname == undefined){
+        res.send("Game Not Defined");
+        throw "game not defined"
+    }
+    if(games[req.body.hostname] != undefined){
+        res.send("Game Exists");
+        throw "game exists"
+    }
 
     let createdGame = new newGame(req)
     games[createdGame.hostname] = createdGame
-    //timeout that bitch
 
     res.send(JSON.stringify("Created Da boi"))
 })
@@ -427,15 +442,22 @@ server_socket.on("connection", newConnection)
 
 
 setInterval(() => {
-    console.log("cleaning")
+    //log("cleaning")
     for (let key in games) {
-        let game =  games[key]
-        console.log(Date.now() - game.creationTime, game_max_alive)
+        let game = games[key]
+        log(Date.now() - game.creationTime, game_max_alive, key, game.ended)
         if(Date.now() - game.creationTime > game_max_alive){
-            console.log("ending");
-            console.log(game.hostname);
+            log("ending");
+            log(game.hostname);
             game.end("Reached Timeout");
-            
-        }        
+            delete games[key];
+        }
+        else if(game.ended){
+            log("ending");
+            log(game.hostname);
+            game.end("Game Ended");
+            delete games[key];
+        }
     }
+    
 }, clean_inter_ns)

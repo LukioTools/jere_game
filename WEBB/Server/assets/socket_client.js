@@ -3,6 +3,7 @@ let parsed = {}
 //contains server inctance data.
 let server_data
 let turn = false
+let server_url = "/"
 
 let playerCountdown;
 let count_down = 0
@@ -13,6 +14,12 @@ let serverDiedInterval;
 
 let serverCountdown_elemet;
 let playerCountdown_elemet;
+
+
+let start_interval;
+
+//in ms
+let refresh_rate = 64
 
 function serverDied(){
     clearInterval(serverDiedInterval)
@@ -49,7 +56,7 @@ function updateBar(data){
     clearInterval(playerCountdown)
 
     //set intervall
-    playerCountdown = setInterval(countDown, 120, server_data.turn + Date.now())
+    playerCountdown = setInterval(countDown, refresh_rate, server_data.turn + Date.now())
     
     
     //idleTimeout = setTimeout()
@@ -88,12 +95,12 @@ waitForLoad()
 function join() {
     //set som shit
     playerCountdown_elemet = document.getElementById("countdown")
-    playerCountdown_elemet = document.getElementById("serveralive")
+    serverCountdown_elemet = document.getElementById("serveralive")
 
 
 
     //join the session 
-    soc = io("/")
+    soc = io(server_url)
 
     soc.on('connect_error', function(err) {
         // handle server error here
@@ -133,10 +140,24 @@ function join() {
             $(".start_btn").removeClass("dn");
         }
         let server_death_ms = server_data.serverCreation + server_data.serverAlive - Date.now()
-        serverDiedInterval = setInterval(countDownServer, 120)
+        serverDiedInterval = setInterval(countDownServer, refresh_rate)
         serverDiedTimeout = setTimeout(serverDied, server_death_ms)
-
     })
+
+    soc.on("startTime", (time_ns_str) => {
+        //the 
+        let time_ns = parseInt(time_ns_str)
+        let el = document.getElementById("startTime")
+        clearInterval(start_interval)
+        start_interval = setInterval(() => {
+            let time_sec = (time_ns - Date.now()) / 1000
+            let minutes = Math.floor(time_sec/60)
+            let seconds = time_sec % 60
+            el.innerHTML = `Minutes: ${minutes}, Seconds: ${seconds.toFixed(3)}`
+        }, refresh_rate)
+    })
+
+
 
     //when player leaves or joins
     soc.on("players", (players_string) => {

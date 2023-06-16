@@ -11,6 +11,8 @@
     <script src="https://code.jquery.com/jquery-3.6.4.js" integrity="sha256-a9jBBRygX1Bh5lt8GZjXDzyOB+bWve9EiO7tROUtj/E=" crossorigin="anonymous"></script>
     <script src="/assets/stripped_index.js"></script>
     <script src="/assets/socket_client.js"></script>
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1057572452821063"
+     crossorigin="anonymous"></script>
 </head>
 <body>
     <div class="start starter column join_inputs">
@@ -37,6 +39,10 @@
         </div>
     </div>
     <div class="start lobby dn">
+        <div>
+            <div>Server auto-starts in: </div>
+            <div class="startTime" id="startTime"></div>
+        </div>
         <div class="lobby_players" id="lobby_players">
 
         </div>
@@ -45,15 +51,19 @@
     <div class="maingrid dn no_select" id="mg"></div>
 
     <div class="turn_manager no_select dn">
-        <div class="countdown cd" id="countdown">
-
+        <div>
+            Turn Time
+            <div class="countdown cd" id="countdown"></div>
         </div>
+
         <div class="" id="turn_manager">
 
         </div>
-        <div class="serveralive cd" id="serveralive">
-
+        <div>
+            Server Alive
+            <div class="serveralive cd" id="serveralive"></div>
         </div>
+
     </div>
 
 </body>
