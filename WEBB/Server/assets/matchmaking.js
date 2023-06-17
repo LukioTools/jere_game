@@ -35,7 +35,7 @@ async function matchmaking(refresh = false) {
     for (let index = 0; index < data.length; index++) { const match = data[index];
         match.hostname_cut = match.hostname;
         //checks
-        if(document.getElementById("box_password").checked == true && match.password == "true"){
+        if(document.getElementById("box_password").checked == true && match.password == true){
             continue; //ignore password protected
         }
         if(mm_filter && !match.hostname.includes(mm_filter)){

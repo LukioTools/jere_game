@@ -31,12 +31,13 @@ table, tbody, tr, th, td{
     text-align: center;
     padding: 1px 5px;
 }
-
-
-td{
-
+tr:hover{
+    background-color: var(--theme-main);
+}
+tr{
     background-color: var(--theme-main-dark-bit);
 }
+
 .wrapper {
     display: flex;
     width: 100%;
