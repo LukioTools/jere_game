@@ -18,7 +18,6 @@ body {
     background-color: inherit;
     margin: 0px;
     padding: 0px;
-    display: flex;
 }
 table{
     width: 100%;
@@ -37,6 +36,11 @@ table, tbody, tr, th, td{
 td{
 
     background-color: var(--theme-main-dark-bit);
+}
+.wrapper {
+    display: flex;
+    width: 100%;
+    height: 100%;
 }
 .maingrid {
     display: grid;

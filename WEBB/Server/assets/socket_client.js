@@ -144,11 +144,15 @@ function join(input_element = null) {
         generateGameBoard(server_data.x, server_data.y)
 
         //hide joining shits
+        $("#matchmaking").addClass("dn")
+        $(".wrapper").addClass("dn")
         $(".join_inputs").addClass("dn");
+
+        
         //show lobby 
         $(".lobby").removeClass("dn");
 
-        $("#matchmaking").addClass("dn")
+
         //show start button if youre the host
         if (server_data.host == true) {
             $(".start_btn").removeClass("dn");

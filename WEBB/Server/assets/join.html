@@ -16,38 +16,41 @@
      crossorigin="anonymous"></script>
 </head>
 <body>
-    <div class="matchmaking" id="matchmaking">
-        <div class="mmopts" id="mmopts">
-            <input type="text" name="search_hostname" id="search_hostname" placeholder="Search">
-            <input type="checkbox" name="box_password" id="box_password">
-            <input type="button" value="Refresh" onclick="matchmaking()">
+    <div class="wrapper">
+        <div class="matchmaking" id="matchmaking">
+            <div class="mmopts" id="mmopts">
+                <input type="text" name="search_hostname" id="search_hostname" placeholder="Search">
+                <input type="checkbox" name="box_password" id="box_password">
+                <input type="button" value="Refresh" onclick="matchmaking()">
+            </div>
+            <table class="matches" id="matches">
+            </table>
         </div>
-        <table class="matches" id="matches">
-        </table>
+        <div class="start starter column join_inputs">
+            <div class="server_settings board">
+                <input type="text" name="hostname" id="hostname" placeholder="Hostname">
+                <input type="text" name="password" id="password" placeholder="Password">
+            </div>
+    
+    
+            <div class="add_player_settings">
+                <input type="text" name="username" id="username" placeholder="Username">
+                <input type="color" name="player_color" id="color" class="color player_color" value="#DD22DD">
+            </div>
+    
+            <input class="add_btn" type="button" value="Join a game" onclick="join()">
+    
+    
+    
+            <div class="playopts">
+                <H1>Play Offline</H1>
+                <a href="/offline/index">Play Offline</a>
+                <H1>Play Online</H1>
+                <a href="/online/host">Host a new Game</a>
+            </div>
+        </div>
     </div>
-    <div class="start starter column join_inputs">
-        <div class="server_settings board">
-            <input type="text" name="hostname" id="hostname" placeholder="Hostname">
-            <input type="text" name="password" id="password" placeholder="Password">
-        </div>
-
-
-        <div class="add_player_settings">
-            <input type="text" name="username" id="username" placeholder="Username">
-            <input type="color" name="player_color" id="color" class="color player_color" value="#DD22DD">
-        </div>
-
-        <input class="add_btn" type="button" value="Join a game" onclick="join()">
-
-
-
-        <div class="playopts">
-            <H1>Play Offline</H1>
-            <a href="/offline/index">Play Offline</a>
-            <H1>Play Online</H1>
-            <a href="/online/host">Host a new Game</a>
-        </div>
-    </div>
+    
     <div class="start lobby dn">
         <div>
             <div>Server auto-starts in: </div>

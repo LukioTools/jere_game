@@ -14,6 +14,11 @@ function matchmaking() {
         let out = "<tr><th>Hostname</th><th>Players</th><th>Has Password</th></tr>"
         for (let index = 0; index < data.length; index++) { const match = data[index];
             match.hostname_cut = match.hostname;
+            if(document.getElementById("box_password").checked == true){
+                if(match.password == "true"){
+                    continue; //ignore password protected
+                }
+            }
             if(match.hostname.length > 6){
                 match.hostname_cut = match.hostname.substring(0, 5) + "...";
             }
