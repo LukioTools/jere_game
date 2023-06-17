@@ -277,7 +277,17 @@ input[type="text"]::placeholder {
 
 
 
-
+.adsbygoogle {
+    display:inline-block;
+    width:250px;
+    height:500px;
+    position: fixed;
+    top: 0px;
+    right: 0px;
+    z-index: 99;
+    /*background-color: black;*/
+}
+   
 
 
 

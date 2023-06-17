@@ -419,6 +419,10 @@ server.get("/online/matchmaking", (_req, res, _next) => {
     res.send(JSON.stringify(mm))
 })
 
+server.get("/ads.txt", (_req, res, _next) => {
+    res.sendFile(j(__dirname, "ads.txt"))
+})
+
 server.get("*", (req, res, _next) => {
     //log(req.path);
     res.redirect("/online/join")
