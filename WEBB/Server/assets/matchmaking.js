@@ -1,52 +1,66 @@
 let mm_filter
-
 const base = "<tr><th>Hostname</th><th>Players</th><th>Has Password</th></tr>"
+let data;
 
-function matchmaking() {
+
+function fetchmm(){
+    return new Promise((res, rej) => {
+        fetch('/online/matchmaking')
+        .then(response => response.json())
+        .then(in_data => {
+            data = in_data
+            res()
+        })
+    })
+    
+}
+
+
+async function matchmaking(refresh = false) {
     let mmel = document.getElementById("matches")
     mmel.innerHTML = "Searching for matches...."
-    fetch('/online/matchmaking')
-    .then(response => response.json())
-    .then(data => {
-        //the base string
-        console.log(data)
-        if(data.length == 0)
-        {
-            mmel.innerHTML = "No matches found"
-            return
+    if(refresh){
+        await fetchmm()
+    }
+
+    //the base string
+    console.log(data)
+    if(data.length == 0)
+    {
+        mmel.innerHTML = "No matches found"
+        return
+    }
+    let out = ""
+    for (let index = 0; index < data.length; index++) { const match = data[index];
+        match.hostname_cut = match.hostname;
+        //checks
+        if(document.getElementById("box_password").checked == true && match.password == "true"){
+            continue; //ignore password protected
         }
-        let out = ""
-        for (let index = 0; index < data.length; index++) { const match = data[index];
-            match.hostname_cut = match.hostname;
-            //checks
-            if(document.getElementById("box_password").checked == true && match.password == "true"){
-                continue; //ignore password protected
-            }
-            if(mm_filter && !match.hostname.includes(mm_filter)){
-                continue;
-            }
+        if(mm_filter && !match.hostname.includes(mm_filter)){
+            continue;
+        }
 
 
-            if(match.hostname.length > 6){
-                match.hostname_cut = match.hostname.substring(0, 5) + "...";
-            }
-            
-            out += 
-            `
-            <tr onclick="join(this)"> 
-                <td class="table_hostname"  value="${match.hostname}"  >${match.hostname_cut}</td> 
-                <td class="table_players" >${match.players}</td> 
-                <td class="table_password" >${match.password}</td> 
-            </tr>
-            `
+        if(match.hostname.length > 6){
+            match.hostname_cut = match.hostname.substring(0, 5) + "...";
         }
-        console.log(out);
-        if(out == ""){
-            mmel.innerHTML = "No matches found"
-            return
-        }
-        mmel.innerHTML = base + out;
-    })
+        
+        out += 
+        `
+        <tr onclick="join(this)"> 
+            <td class="table_hostname"  value="${match.hostname}"  >${match.hostname_cut}</td> 
+            <td class="table_players" >${match.players}</td> 
+            <td class="table_password" >${match.password}</td> 
+        </tr>
+        `
+    }
+    console.log(out);
+    if(out == ""){
+        mmel.innerHTML = "No matches found"
+        return
+    }
+    mmel.innerHTML = base + out;
 }
 
 function matchmaking_parse(element){
@@ -118,8 +132,7 @@ function matchmaking_parse(element){
 
 
 const matchmaking_filter = (element) => {
-    
     mm_filter = element.value;
     console.log(mm_filter);
-    matchmaking()
+    matchmaking(false);
 }
