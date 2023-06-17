@@ -438,9 +438,7 @@ server.get("/online/matchmaking", (_req, res, _next) => {
     }       
         
     res.send(JSON.stringify(mm))
-}
-
-)
+})
 
 server.get("*", (req, res, _next) => {
     //log(req.path);

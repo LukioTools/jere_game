@@ -1,3 +1,5 @@
+let mm_filter
+
 function matchmaking() {
     let mmel = document.getElementById("matches")
     mmel.innerHTML = "Searching for matches...."
@@ -14,14 +16,19 @@ function matchmaking() {
         let out = "<tr><th>Hostname</th><th>Players</th><th>Has Password</th></tr>"
         for (let index = 0; index < data.length; index++) { const match = data[index];
             match.hostname_cut = match.hostname;
-            if(document.getElementById("box_password").checked == true){
-                if(match.password == "true"){
-                    continue; //ignore password protected
-                }
+            //checks
+            if(document.getElementById("box_password").checked == true && match.password == "true"){
+                continue; //ignore password protected
             }
+            if(mm_filter && !match.hostname.includes(mm_filter)){
+                continue;
+            }
+
+            
             if(match.hostname.length > 6){
                 match.hostname_cut = match.hostname.substring(0, 5) + "...";
             }
+            
             out += 
             `
             <tr onclick="join(this)"> 
@@ -100,5 +107,13 @@ function matchmaking_parse(element){
 
     console.log(obj);
     return obj;
+
+}
+
+
+const matchmaking_filter = (element) => {
+    
+    mm_filter = element.value;
+    console.log(mm_filter);
 
 }
