@@ -202,31 +202,6 @@ class newGame{
             this.broadCastPlayers()
         }
     }
-    /*
-    disconnectSocketList(socket, connecions){
-        log(connecions)
-        log(socket)
-        const index = connecions.indexOf(socket);
-        //log("disconnected", socket.socket_info)
-        if (index > -1) { 
-            connecions.splice(index, 1); // 1 is for only 1
-        }
-        else{
-            log("no splice")
-        }
-        log(connecions.length)
-        if(connecions.length == 0){
-            this.end("no more players")
-        }
-        //the game not end
-        else if(socket.socket_info.host){
-            connecions[0].socket_info.host = true;
-        }
-
-        socket.disconnect(true)
-        
-    }
-    */
 
 
     async start(){
@@ -274,8 +249,12 @@ class newGame{
 
             }, turn_ns)
             socket.once("selected", (coord_str) => {
-                res(JSON.parse(coord_str))
                 clearTimeout(this.timeout);
+                let unsanitized = JSON.parse(coord_str)
+                let out = {}
+                out.x = unsanitized.x;
+                out.y = unsanitized.y;
+                res(out)
             })
         })
     }
