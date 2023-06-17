@@ -1,6 +1,6 @@
 let mm_filter
 const base = "<tr><th>Hostname</th><th>Players</th><th>Has Password</th></tr>"
-let data;
+let data = undefined;
 
 
 function fetchmm(){
@@ -19,7 +19,8 @@ function fetchmm(){
 async function matchmaking(refresh = false) {
     let mmel = document.getElementById("matches")
     mmel.innerHTML = "Searching for matches...."
-    if(refresh){
+
+    if(refresh || data == undefined){
         await fetchmm()
     }
 
