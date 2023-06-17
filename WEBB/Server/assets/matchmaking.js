@@ -1,5 +1,7 @@
 let mm_filter
 
+const base = "<tr><th>Hostname</th><th>Players</th><th>Has Password</th></tr>"
+
 function matchmaking() {
     let mmel = document.getElementById("matches")
     mmel.innerHTML = "Searching for matches...."
@@ -13,7 +15,7 @@ function matchmaking() {
             mmel.innerHTML = "No matches found"
             return
         }
-        let out = "<tr><th>Hostname</th><th>Players</th><th>Has Password</th></tr>"
+        let out = ""
         for (let index = 0; index < data.length; index++) { const match = data[index];
             match.hostname_cut = match.hostname;
             //checks
@@ -24,7 +26,7 @@ function matchmaking() {
                 continue;
             }
 
-            
+
             if(match.hostname.length > 6){
                 match.hostname_cut = match.hostname.substring(0, 5) + "...";
             }
@@ -39,7 +41,11 @@ function matchmaking() {
             `
         }
         console.log(out);
-        mmel.innerHTML = out;
+        if(out == ""){
+            mmel.innerHTML = "No matches found"
+            return
+        }
+        mmel.innerHTML = base + out;
     })
 }
 
@@ -115,5 +121,5 @@ const matchmaking_filter = (element) => {
     
     mm_filter = element.value;
     console.log(mm_filter);
-
+    matchmaking()
 }
