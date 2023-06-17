@@ -423,6 +423,10 @@ server.get("/ads.txt", (_req, res, _next) => {
     res.sendFile(j(__dirname, "ads.txt"))
 })
 
+server.get("ads.txt", (_req, res, _next) => {
+    res.sendFile(j(__dirname, "ads.txt"))
+})
+
 server.get("*", (req, res, _next) => {
     //log(req.path);
     res.redirect("/online/join")
