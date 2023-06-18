@@ -412,6 +412,8 @@ server.get("/online/matchmaking", (_req, res, _next) => {
                 hostname: game.hostname,
                 players: game.connecions.length,
                 password: game.password != "",
+                x: game.x,
+                y: game.y
             })
         }
     }       
