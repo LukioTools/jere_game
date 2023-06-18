@@ -15,8 +15,14 @@ let serverDiedInterval;
 let serverCountdown_elemet;
 let playerCountdown_elemet;
 
-
 let start_interval;
+
+//cleaning regex justincase
+
+const color_uimput_regexp_test = /^#(?:[0-9a-fA-F]{3}){1,2}$/
+const clear_uimput_regexp = /[^0-9a-zA-Z]/g
+
+
 
 //in ms
 let refresh_rate = 64
@@ -212,8 +218,21 @@ function join(input_element = null) {
     soc.on("place", (coord_color) => {
         //console.log(coord_color)
         let cc = JSON.parse(coord_color) //hope that they are int :)
+        //if(color_uimput_regexp_test.test("cc.color") != true){cc.color = "#F0F0F0" }
         //console.log(cc)
         placeOnBoard(parseInt(cc.x), parseInt(cc.y), cc.color)
+        if(checkEnd()){
+            console.log("GAME ENDED", "background-color: yellow; color: black;")
+            clearTimeout(serverDiedTimeout)
+            clearInterval(serverDiedInterval)
+            clearInterval(start_interval)
+            clearInterval(playerCountdown)
+            endGame()
+            soc.emit("ended", true)
+            soc.disconnect(true)
+
+            
+        }
     })
 }
 function start() {

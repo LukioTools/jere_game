@@ -52,9 +52,58 @@ function put(x, y){
 function capture(){
 
 }
+/**
+ * 
+ * @param {{string: Number}} scoreMap 
+ */
+function endscreen(scoreMap){
+    
+    let orderedKeys = Object.keys(scoreMap).sort((a, b) => {scoreMap[b] - scoreMap[a]})
+    console.log("keys in order", orderedKeys)
+    let out = ""
+    for (let index = 0; index < orderedKeys.length; index++) {
+        const color_name = orderedKeys[index];
+        out += `<div style="background-color: ${color_name};">${color_name}: ${scoreMap[color_name]}</div>`
+    }
+    document.getElementById("scoreboard").innerHTML = out
+    //just notes
+    let winner = {
+        color: orderedKeys[0],
+        score: scoreMap[orderedKeys[0]],
+    }
+    $(".body").css("")
+    document.getElementById("winner").innerText = `Winner: ${winner.color} with a score of ${winner.score}`
+    $(".turn_manager").addClass("dn")
+    $("#endscreen").removeClass("dn")
+}
+
+
+
+function endGame(){
+    let scoreColor = {};
+
+    let maingrid = $(".maingrid");
+    let children = maingrid.children();
+
+    for (let index = 0; index < children.length; index++) {
+        const element = children[index];
+        console.log("element.attributes.color.value", element.attributes.color.value)
+        if(scoreColor[element.attributes.color.value] == undefined){
+            scoreColor[element.attributes.color.value] = 0;
+        }
+        scoreColor[element.attributes.color.value]++;
+    }
+    console.log(scoreColor)
+    maingrid.addClass("dn")
+    endscreen(scoreColor)
+}
+
+function checkEnd(){
+    return document.getElementsByClassName("notselected").length == 0;
+}
+
 
 function placeOnBoard(x, y, color){
-    let maingrid = $(".maingrid");
     let origin_element = getByCord(x, y)
     let jq_origin_element = $(origin_element)
 
