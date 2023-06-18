@@ -12,11 +12,11 @@ let server_socket;
  */
 let games = {}
 
-const start_ns = 120 _000;
+const start_ns = 120_000;
 const turn_ns = 1 * 10 * 1000;
 
 const clean_inter_ns = 1 * 1000;
-const game_max_alive = 240 _000;
+const game_max_alive = 240_000;
 
 const PORT = 22255;
 const verbose = false;
