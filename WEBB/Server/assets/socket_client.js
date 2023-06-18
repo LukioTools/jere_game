@@ -99,17 +99,7 @@ function join(input_element = null) {
 
 
 
-    //join the session 
 
-    soc = io(server_url)
-
-    soc.on('connect_error', function(err) {
-        // handle server error here
-        console.log('Error connecting to server', err);
-        console.log(`%c${server_url} was not hosting a server...`, "background-color: red; color: azure;")
-        soc.destroy()
-        return -1
-    });
     let join_data;
     if (input_element == null){
         console.log("normal");
@@ -129,6 +119,18 @@ function join(input_element = null) {
             return -1;
         }
     }
+
+    //join the session 
+    soc = io(server_url)
+
+    soc.on('connect_error', function(err) {
+        // handle server error here
+        console.log('Error connecting to server', err);
+        console.log(`%c${server_url} was not hosting a server...`, "background-color: red; color: azure;")
+        soc.destroy()
+        return -1
+    });
+
     //joindata
     console.log("join_data", join_data)
     soc.emit("join", JSON.stringify(join_data))

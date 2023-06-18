@@ -1,5 +1,14 @@
 let mm_filter
-const base = "<tr><th>Hostname</th><th>Players</th><th>Has Password</th></tr>"
+const base = `
+<tr>
+    <th>Hostname</th>
+    <th>Boardsize</th>
+    <th>Players</th>
+    <th>Has Password</th>
+</tr>
+`
+
+
 let data = undefined;
 
 
@@ -51,6 +60,7 @@ async function matchmaking(refresh = false) {
         `
         <tr onclick="join(this)"> 
             <td class="table_hostname"  value="${match.hostname}"  >${match.hostname_cut}</td> 
+            <td class="table_hostname"  value="${parseInt(match.size.x)}x${parseInt(match.size.y)}">${match.size.x}x${match.size.y}</td> 
             <td class="table_players" >${match.players}</td> 
             <td class="table_password" >${match.password}</td> 
         </tr>
@@ -75,11 +85,13 @@ function matchmaking_parse(element){
     username: document.getElementById("username").value,
     color: document.getElementById("color").value
     */
-    let needPwd = jqel.children(".table_password").html == "true" && document.getElementById("password").value == "";
+    let inner =  jqel.children(".table_password").html()
+    let needPwd = inner == "true" && document.getElementById("password").value == "";
     let needUsername = document.getElementById("username").value == "";
     let needColor = document.getElementById("color").value == "";
 
-
+    console.log("needPWD", needPwd, inner)
+    console.log("table_password", inner)
     if(needPwd){
         let val = window.prompt("Password required", "6969");
         console.log(val);
@@ -87,10 +99,10 @@ function matchmaking_parse(element){
             return -1;
         }
         else{
-            obj.username = val
+            obj.password = val
         }
     }else{
-        if(jqel.children(".table_password").html == "false"){
+        if(inner == "false"){
             obj.password = ""
         }else{
             obj.password = document.getElementById("password").value;

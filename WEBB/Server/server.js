@@ -150,10 +150,13 @@ class newGame{
 
     connectionCheck(incoming_socket){
         if(this.joinable){
+            //console.log(this.password)
+            //console.log(incoming_socket.socket_info.password)
             if(incoming_socket.socket_info.password == this.password){
                 return true
             }
         }
+        //console.log("pwd failed")
         return false
 
     }
@@ -168,7 +171,7 @@ class newGame{
      * @param {socket.Socket} incoming_socket 
      */
     acceptConnectionV2(socket){
-        if(this.connectionCheck == false){
+        if(this.connectionCheck(socket) == false){
             this.disconnectSocket(socket)
             return false
         }
@@ -304,6 +307,7 @@ function setAndClean(socket, inc_data){
     socket.socket_info.color = inc_data.color;
     socket.socket_info.username = inc_data.username.replace(clear_uimput_regexp, "");
     socket.socket_info.password = inc_data.password.replace(clear_uimput_regexp, "");
+    //console.log(socket.socket_info)
     return null
 }
 
@@ -313,6 +317,7 @@ function setAndClean(socket, inc_data){
  */
 function newConnection(socket){
     let socket_join_timeout = setTimeout(() => {
+        //console.log("wait join timeout")
         socket.disconnect(true)
     }, 6000)
     socket.once("join", (json) => {
@@ -321,14 +326,14 @@ function newConnection(socket){
         let err = setAndClean(socket, JSON.parse(json))
         if(err){
             socket.emit("join_error", err)
-            console.log(err)
+            //console.log(err)
             socket.disconnect(true)
             return
         }
 
         let da_agme = games[socket.socket_info.hostname]
         if(da_agme == undefined){
-            log("no correct host found")
+            //console.log("no correct host found", socket.socket_info.hostname)
             socket.emit("nohost", "true")
             socket.disconnect(true)
             return 0
@@ -351,15 +356,10 @@ function newConnection(socket){
 }
 
 
-//let connecions = []
 
 server.use(express.urlencoded({extended: true}))
 server.use(express.json({extended: true}))
-server.use((_req, _res, next) => {
-    //log(req.body)
-    //log(req.query)
-    next()
-})
+
 
 
 let nginx_bool = false
@@ -412,8 +412,10 @@ server.get("/online/matchmaking", (_req, res, _next) => {
                 hostname: game.hostname,
                 players: game.connecions.length,
                 password: game.password != "",
-                x: game.x,
-                y: game.y
+                size: {
+                    x: game.x,
+                    y: game.y
+                }
             })
         }
     }       
