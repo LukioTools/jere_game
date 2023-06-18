@@ -57,7 +57,6 @@ function capture(){
  * @param {{string: Number}} scoreMap 
  */
 function endscreen(scoreMap){
-    
     let orderedKeys = Object.keys(scoreMap).sort((a, b) => {scoreMap[b] - scoreMap[a]})
     console.log("keys in order", orderedKeys)
     let out = ""
@@ -71,10 +70,10 @@ function endscreen(scoreMap){
         color: orderedKeys[0],
         score: scoreMap[orderedKeys[0]],
     }
-    $(".body").css("")
-    document.getElementById("winner").innerText = `Winner: ${winner.color} with a score of ${winner.score}`
-    $(".turn_manager").addClass("dn")
-    $("#endscreen").removeClass("dn")
+    let w = document.getElementById("winner")
+    w.style.cssText = `background-color: ${winner.color}; color: azure;`
+    w.innerText = `Winner: ${winner.color} with a score of ${winner.score}`
+
 }
 
 
@@ -94,7 +93,11 @@ function endGame(){
         scoreColor[element.attributes.color.value]++;
     }
     console.log(scoreColor)
+
+    document.getElementById("body").style.cssText = "" //clear that mf
     maingrid.addClass("dn")
+    $(".turn_manager").addClass("dn")
+    $("#endscreen").removeClass("dn")
     endscreen(scoreColor)
 }
 
