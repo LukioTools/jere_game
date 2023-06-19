@@ -58,7 +58,7 @@ function capture(){
  */
 function endscreen(scoreMap){
     let orderedKeys = Object.keys(scoreMap).sort((a, b) => {scoreMap[b] - scoreMap[a]})
-    console.log("keys in order", orderedKeys)
+    //console.log("keys in order", orderedKeys)
     let out = ""
     for (let index = 0; index < orderedKeys.length; index++) {
         const color_name = orderedKeys[index];
@@ -86,13 +86,13 @@ function endGame(){
 
     for (let index = 0; index < children.length; index++) {
         const element = children[index];
-        console.log("element.attributes.color.value", element.attributes.color.value)
+        //console.log("element.attributes.color.value", element.attributes.color.value)
         if(scoreColor[element.attributes.color.value] == undefined){
             scoreColor[element.attributes.color.value] = 0;
         }
         scoreColor[element.attributes.color.value]++;
     }
-    console.log(scoreColor)
+    //console.log(scoreColor)
 
     document.getElementById("body").style.cssText = "" //clear that mf
     maingrid.addClass("dn")
@@ -111,7 +111,7 @@ function placeOnBoard(x, y, color){
     let jq_origin_element = $(origin_element)
 
     if(jq_origin_element.hasClass("selected")){
-        console.log("element was already placed")
+        //console.log("element was already placed")
         return -1
     }
     jq_origin_element.addClass("selected")
@@ -139,9 +139,9 @@ function placeOnBoard(x, y, color){
  */
 function checkSide(x, y, px, py){
 
-    console.log({
-        x:x, y:y, px:px, py:py
-    })
+    //console.log({
+    //    x:x, y:y, px:px, py:py
+    //})
     let tx = x+px
     let ty = y+py
 
@@ -158,22 +158,22 @@ function checkSide(x, y, px, py){
     let check = $(getByCord(tx, ty))
     let between = $(getByCord(bx, by))
 
-    console.log(cur); console.log(check); console.log(between)
+    //console.log(cur); //console.log(check); //console.log(between)
 
     if(cur.attr("color") == check.attr("color")){
-        console.log("\nwent pass fst")
-        console.log(between.attr("selected"))
-        console
-        console.log((between.attr("captured") == undefined && between.attr("selected") != undefined && cur.attr("color") != between.attr("color")))
+        //console.log("\nwent pass fst")
+        //console.log(between.attr("selected"))
+        //console
+        //console.log((between.attr("captured") == undefined && between.attr("selected") != undefined && cur.attr("color") != between.attr("color")))
         if(between.attr("captured") == undefined && between.attr("selected") != undefined && cur.attr("color") != between.attr("color")){
-            console.log("\nwent pass nd")
+            //console.log("\nwent pass nd")
             between.attr("color", cur.attr("color"))
             between.css("background-color", cur.attr("color"))
             between.attr("captured", true)
             between.addClass("captured")
             between.attr("selected", true)
             between.removeClass("notselected");
-            console.info(`Captured witht color : ${cur.attr("color")}`)
+            //console.info(`Captured witht color : ${cur.attr("color")}`)
             checkAll(bx, by)
             return true
         }
@@ -205,7 +205,7 @@ function checkAdjacent(x, y){
 }
 
 function checkAll(x, y){
-    console.log("checkall", x, y)
+    //console.log("checkall", x, y)
     checkAdjacent(x, y)
     checkDiagonal(x, y)
     return true
