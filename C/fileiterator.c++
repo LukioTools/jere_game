@@ -7,20 +7,6 @@
 
 #define c_buff_size 4
 
-#define BYTE_TO_BINARY_PATTERN "%c%c%c%c%c%c%c%c"
-#define BYTE_TO_BINARY(byte)  \
-  ((byte) & 0x80 ? '1' : '0'), \
-  ((byte) & 0x40 ? '1' : '0'), \
-  ((byte) & 0x20 ? '1' : '0'), \
-  ((byte) & 0x10 ? '1' : '0'), \
-  ((byte) & 0x08 ? '1' : '0'), \
-  ((byte) & 0x04 ? '1' : '0'), \
-  ((byte) & 0x02 ? '1' : '0'), \
-  ((byte) & 0x01 ? '1' : '0') 
-
-
-
-
 auto path = "C:/Users/User/Desktop/test.txt";
 
 typedef unsigned char f_buffer;
@@ -91,22 +77,13 @@ void printBits(size_t const size, void const * const ptr)
 int main(int argc, char const *argv[])
 {
     if(argc != 2){
-        std::cerr << "Input path required" << std::endl;
+        std::cerr << "Input path required, no more no less" << std::endl;
         return 1;
     }
-
-    //std::cerr << std::filesystem::current_path() << std::endl;
-
-
 
     std::string input_path(argv[1]);
     std::string current_path((std::filesystem::current_path()));
 
-    //std::cerr << input_path.length() << "  " << current_path.length() <<  std::endl;
-
-    //std::cerr << input_path.substr(0, current_path.length()) << std::endl;
-
-    
     if(!std::filesystem::exists(argv[1])){
         std::cerr << "input_file not found" << std::endl;
         return 1;
@@ -119,69 +96,44 @@ int main(int argc, char const *argv[])
         std::cerr << "Unsafe path: path not in current path" << std::endl;
         return 1;
     }
-    std::ifstream input_file;
-    input_file.open(input_path, std::ios::binary);
 
+    //open file
+    std::fstream input_file;
+    input_file.open(input_path, std::fstream::in | std::fstream::out);
+
+    //check if file exists or hasend dopened fsr
     if (input_file.is_open() == false)
     {
         std::cerr << "input_file not found" << std::endl;
         return 1;
     }
-    
-    //impossible to overshoot because same size
-    f_buffer input_buffer[c_buff_size];
 
+
+    //little indian
+    //no overflow detection :(
+    bool overflow = false;
     for (unsigned int i = 0; i < c_buff_size; i++)
     {
-        input_buffer[i] = (f_buffer) input_file.get();
-        //if(input_buffer[i] != (unsigned char) 255){
-        //    input_buffer[i]++;
-        //    break;
-        //}
+        unsigned char c = (unsigned char) input_file.get();
+        c++;
+        input_file.seekp((input_file.tellp() - static_cast<std::streampos>(1)));
+        input_file.put(c);
+        input_file.seekp(input_file.tellp());
+        if(c != (unsigned char) 0){
+            break;
+        }
+        if(input_file.eof()){
+            overflow = true;
+            break;
+        }
+
     }
 
     input_file.close();
 
-
-    //could be a smarter way of incrementing during reading but... ima not do that now
-    //lazyness
-    //printf("%d %d %d %d\n", input_buffer[0], input_buffer[1], input_buffer[2], input_buffer[3]);
-    if(incrementBufferLittleEndian(input_buffer, c_buff_size)){
-        std::cerr << "Buffer overflow" << std::endl;
-        return 1;
-    }
-    //printf("%d %d %d %d\n", input_buffer[0], input_buffer[1], input_buffer[2], input_buffer[3]);
-
-
-    std::ofstream output_file;
-    output_file.open(input_path, std::ios::trunc | std::ios::binary);
-    if (output_file.is_open() == false){
-        std::cerr << "input_file not found???????" << std::endl;
-        return 1;
+    if(overflow){
+        std::cerr << "Overflow Detected" << std::endl;
     }
 
-
-
-     
-    for (size_t i = 0; i < c_buff_size; i++)
-    {
-        //printf(BYTE_TO_BINARY_PATTERN"\n", BYTE_TO_BINARY(input_buffer[i]));
-        output_file << (char) input_buffer[i];
-    }
-    output_file.close();
-
-    //get int 4 fun
-    /*
-    unsigned int inders = 0;
-    for (unsigned short int i = 0; i < c_buff_size; i++)
-    {
-        //inders = inders << (sizeof(unsigned short int));
-        inders += input_buffer[i] << (i * 8);
-        //printf(BYTE_TO_BINARY_PATTERN"\n", BYTE_TO_BINARY(input_buffer[i]));
-        std::cerr << (short) input_buffer[i] << std::endl;
-    }
-    printBits(sizeof(unsigned int), &inders);
-    std::cerr << inders << std::endl;
-    */
     return 0;
 }
