@@ -1,14 +1,10 @@
 #include <iostream>
 #include <filesystem>
 #include <fstream>
-#include <ostream>
-#include <string>
 #include <string.h>
-#include <system_error>
 
 #define c_buff_size 4
 
-auto path = "C:/Users/User/Desktop/test.txt";
 
 typedef unsigned char f_buffer;
 
