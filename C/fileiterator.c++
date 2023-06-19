@@ -12,14 +12,20 @@ auto path = "C:/Users/User/Desktop/test.txt";
 
 typedef unsigned char f_buffer;
 
+//args//
+
+bool output = false;
+bool iterate = true;
+bool create_missing = true;
+
+
 /*
-if overflow, return true
-*/
+//if overflow, return true
 bool incrementBufferLittleEndian(f_buffer* buffer, size_t size){
     for (size_t i = 0; i < size; i++)
     {
         //little so starts first
-        if(buffer[i] == 0xFF /*aka overflow*/){
+        if(buffer[i] == 0xFF ){ //aka overflow
             buffer[i] = 0x00;
             if(i == size - 1){
                 //overflow at last element
@@ -33,6 +39,7 @@ bool incrementBufferLittleEndian(f_buffer* buffer, size_t size){
     }
     return false;
 }
+*/
 
 /*
 //if overflow, return true and set buffer to 0
@@ -74,8 +81,17 @@ void printBits(size_t const size, void const * const ptr)
     puts("");
 }
 
-bool output = false;
-bool iterate = true;
+int createMissing(std::string path){
+    std::ofstream file;
+    file.open(path, std::ios::out | std::ios::binary);
+    if(file.is_open()){
+        char c = 0;
+        file << c << c << c << c;
+        file.close();
+        return 0;
+    }
+    return 1;
+}
 
 int main(int argc, char const *argv[])
 {
@@ -103,9 +119,17 @@ int main(int argc, char const *argv[])
     std::string input_path(argv[1]);
     std::string current_path((std::filesystem::current_path()));
 
-    if(!std::filesystem::exists(argv[1])){
-        std::cerr << "input_file not found" << std::endl;
-        return 1;
+    if(!std::filesystem::exists(input_path)){
+        if(create_missing){
+            if(createMissing(input_path)){
+                std::cerr << "File creation failed" << std::endl;
+                return 1;
+            }
+        }
+        else{
+            std::cerr << "File not found" << std::endl;
+            return 1;
+        }        
     }
     if(input_path.length() <= current_path.length()){
         std::cerr << "Unsafe path: path shorter than current path" << std::endl;
@@ -122,7 +146,7 @@ int main(int argc, char const *argv[])
         //check if file exists or hasend dopened fsr
         if (input_file.is_open() == false)
         {
-            std::cerr << "input_file not found" << std::endl;
+            std::cerr << "File not found" << std::endl;
             return 1;
         }
 
