@@ -68,6 +68,8 @@ class newGame{
         this.timeout = undefined;
         this.startTimeout = undefined;
 
+        this.diagonal = true;
+
         if(req.body == undefined){
             throw new Error("No Body")
         }
@@ -120,7 +122,8 @@ class newGame{
             turn: turn_ns,
             serverCreation: this.creationTime,
             serverAlive: game_max_alive,
-            host: incoming_socket.socket_info.host
+            host: incoming_socket.socket_info.host,
+            diagonal: this.diagonal
         })
         incoming_socket.emit("success", success_data)
 
