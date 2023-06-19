@@ -3,6 +3,7 @@
 #include <fstream>
 #include <ostream>
 #include <string>
+#include <string.h>
 #include <system_error>
 
 #define c_buff_size 4
@@ -73,13 +74,31 @@ void printBits(size_t const size, void const * const ptr)
     puts("");
 }
 
+bool output = false;
+bool iterate = true;
 
 int main(int argc, char const *argv[])
 {
-    if(argc != 2){
-        std::cerr << "Input path required, no more no less" << std::endl;
+    if(argc < 2){
+        std::cerr << "Input path required" << std::endl;
         return 1;
     }
+    for (size_t i = 0; i < argc; i++)
+    {
+        if(strcmp(argv[i], "-s") == 0){
+            output = true;
+        }
+        if(strcmp(argv[i], "-si") == 0){
+            output = true;
+            iterate = false;
+        }
+        if(strcmp(argv[i], "-i") == 0){
+            output = true;
+            iterate = false;
+        }
+    }
+    
+
 
     std::string input_path(argv[1]);
     std::string current_path((std::filesystem::current_path()));
@@ -96,44 +115,61 @@ int main(int argc, char const *argv[])
         std::cerr << "Unsafe path: path not in current path" << std::endl;
         return 1;
     }
-
-    //open file
-    std::fstream input_file;
-    input_file.open(input_path, std::fstream::in | std::fstream::out);
-
-    //check if file exists or hasend dopened fsr
-    if (input_file.is_open() == false)
-    {
-        std::cerr << "input_file not found" << std::endl;
-        return 1;
-    }
-
-
-    //little indian
-    //no overflow detection :(
-    bool overflow = false;
-    for (unsigned int i = 0; i < c_buff_size; i++)
-    {
-        unsigned char c = (unsigned char) input_file.get();
-        c++;
-        input_file.seekp((input_file.tellp() - static_cast<std::streampos>(1)));
-        input_file.put(c);
-        input_file.seekp(input_file.tellp());
-        if(c != (unsigned char) 0){
-            break;
-        }
-        if(input_file.eof()){
-            overflow = true;
-            break;
+    if(iterate){
+        //open file
+        std::fstream input_file;
+        input_file.open(input_path, std::fstream::in | std::fstream::out);
+        //check if file exists or hasend dopened fsr
+        if (input_file.is_open() == false)
+        {
+            std::cerr << "input_file not found" << std::endl;
+            return 1;
         }
 
+        //little indian
+        //no overflow detection :(
+        bool overflow = false;
+        for (unsigned int i = 0; i < c_buff_size; i++)
+        {
+            unsigned char c = (unsigned char) input_file.get();
+            c++;
+            input_file.seekp((input_file.tellp() - static_cast<std::streampos>(1)));
+            input_file.put(c);
+            input_file.seekp(input_file.tellp());
+            if(c != (unsigned char) 0){
+                break;
+            }
+            if(input_file.eof()){
+                overflow = true;
+                break;
+            }
+
+        }
+        input_file.close();
+
+        if(overflow){
+            std::cerr << "Overflow Detected" << std::endl;
+        }
     }
 
-    input_file.close();
 
-    if(overflow){
-        std::cerr << "Overflow Detected" << std::endl;
+    if(output){
+        f_buffer buffer[c_buff_size];
+        std::ifstream read_file;
+
+        read_file.open(input_path, std::ios::binary);
+        read_file.read((char*) buffer, sizeof(buffer));
+        read_file.close();
+        
+        //printBits(sizeof(buffer), buffer);
+        unsigned int out = 0;
+        for (size_t i = 0; i < c_buff_size; i++){
+            out += buffer[i] << (8 * i);
+        }
+        std::cout << out << std::endl;
+
     }
+    
 
     return 0;
 }
