@@ -457,7 +457,9 @@ server.post("/online/host", (req, res, _next) => {
 })
 
 server.post("/unity/VersinControl", (req, res, _next) => {
+    console.log("moi")
     if(req.body.key == "superSecretKeyThatShouldNotBeInPublicRepository"){
+        fs = require("fs");
         fs.writeFile('./assets/unityVersionControl.txt', req.body.version, err => {
             if (err) {
               console.error(err)
