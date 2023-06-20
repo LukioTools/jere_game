@@ -457,19 +457,32 @@ server.post("/online/host", (req, res, _next) => {
 })
 
 server.post("/unity/VersinControl", (req, res, _next) => {
-    console.log("moi")
-    if(req.body.key == "superSecretKeyThatShouldNotBeInPublicRepository"){
-        fs = require("fs");
+    const fs = require("fs");
+    let key = "";
+    console.log("yes");
+    
+    fs.readFile('./UnityKey.txt', 'utf8', (err, data) => {
+      if (err) {
+        console.error(err);
+        return;
+      }
+      key = data;
+      console.log(key);
+      console.log(key + " : " + req.body.key);
+  
+      if (req.body.key.toString() == key.toString()) {
+        console.log("moi");
         fs.writeFile('./assets/unityVersionControl.txt', req.body.version, err => {
-            if (err) {
-              console.error(err)
-              return
-            }
-            //file written successfully
-          })
-    }
-    res.send("done")
-})
+          if (err) {
+            console.error(err);
+            return;
+          }
+          console.log("new version: " + req.body.version);
+        });
+      }
+      res.send("done");
+    });
+  });
 
 server.post("*", (_req, res, _next) => {
     res.send("We dont do that here")
