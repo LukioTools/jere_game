@@ -456,6 +456,18 @@ server.post("/online/host", (req, res, _next) => {
     res.send(JSON.stringify("Created Da boi"))
 })
 
+server.post("/unity/VersinControl", (req, res, _next) => {
+    if(req.body.key == "superSecretKeyThatShouldNotBeInPublicRepository"){
+        fs.writeFile('./assets/unityVersionControl.txt', req.body.version, err => {
+            if (err) {
+              console.error(err)
+              return
+            }
+            //file written successfully
+          })
+    }
+    res.send("done")
+})
 
 server.post("*", (_req, res, _next) => {
     res.send("We dont do that here")
