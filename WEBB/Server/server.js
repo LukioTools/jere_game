@@ -85,6 +85,10 @@ class newGame{
         if(req.body.y== undefined){
             throw new Error("no y")
         }
+        if(req.body.diagonal != undefined){
+            this.diagonal = req.body.diagonal == "true" || req.body.diagonal == true
+        }
+
         this.hostname = req.body.hostname.replace(clear_uimput_regexp, "")
         this.password = req.body.password.replace(clear_uimput_regexp, "")
 
