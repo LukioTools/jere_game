@@ -32,6 +32,9 @@ const path = require("path")
 const j = path.join
 const socket = require("socket.io")
 
+const multer = require('multer')
+const upload = multer({ dest: 'assets/' })
+
 
 
 function log(val){
@@ -467,6 +470,28 @@ server.post("/unity/VersinControl", (req, res, _next) => {
           })
     }
     res.send("done")
+})
+
+server.post("/unity/NewVersion", upload.single('file'), (req, res) =>{
+    const { key } = req.body;
+
+    // Check if the key is correct
+    if (key === 'your_correct_key') {
+      // File was uploaded and key is correct
+      // Access the uploaded file through req.file
+      if (!req.file) {
+        return res.status(400).json({ error: 'No file received' });
+      }
+  
+      // Save the file to the local filesystem
+      const filePath = `uploads/${req.file.originalname}`;
+      req.file.path = filePath;
+  
+      return res.status(200).json({ message: 'File uploaded and saved successfully' });
+    }
+  
+    // Incorrect key provided
+    return res.status(401).json({ error: 'Incorrect key' });
 })
 
 server.post("*", (_req, res, _next) => {
