@@ -530,7 +530,7 @@ server.post("/unity/NewVersion", upload.single('file'), (req, res) => {
                 });
             }
 
-            const filePath = "assets\\saarto.exe";
+            const filePath = "assets\\saarto.zip";
             //console.log(filePath);
             console.log("Writing the new installer file")
             if (fs.existsSync(filePath)) {
