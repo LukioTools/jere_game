@@ -1,4 +1,3 @@
-
 /**
  * @type  {socket.Server}
  */
@@ -14,9 +13,9 @@ let server_socket;
 let games = {}
 
 const start_ns = 120_000;
-const turn_ns = 1*10*1000;
+const turn_ns = 1 * 10 * 1000;
 
-const clean_inter_ns = 1*1000;
+const clean_inter_ns = 1 * 1000;
 const game_max_alive = 240_000;
 
 const PORT = 22255;
@@ -32,19 +31,22 @@ const path = require("path")
 const j = path.join
 const socket = require("socket.io")
 
-const multer = require('multer')
-const upload = multer({ dest: 'assets/' })
+const multer = require('multer');
+const { debug } = require("console");
+const upload = multer({
+    dest: 'assets/'
+})
 
 
 
-function log(val){
-    if(verbose){
+function log(val) {
+    if (verbose) {
         log(val);
     }
 }
 
-function startGame(game){
-    if(game.joinable == true){
+function startGame(game) {
+    if (game.joinable == true) {
         game.joinable = false
         for (let index = 0; index < game.connecions.length; index++) {
             const socket = game.connecions[index];
@@ -55,12 +57,12 @@ function startGame(game){
     return 0
 }
 
-class newGame{
+class newGame {
     /**
      * 
      * @param {*} req 
      */
-    constructor(req){
+    constructor(req) {
         /**
          * @type {[socket.Socket]}
          */
@@ -73,22 +75,22 @@ class newGame{
 
         this.diagonal = true;
 
-        if(req.body == undefined){
+        if (req.body == undefined) {
             throw new Error("No Body")
         }
-        if(req.body.hostname == undefined){
+        if (req.body.hostname == undefined) {
             throw new Error("No Hostname")
         }
-        if(req.body.password == undefined){
+        if (req.body.password == undefined) {
             throw new Error("No Password")
         }
-        if(req.body.x == undefined){
+        if (req.body.x == undefined) {
             throw new Error("no x")
         }
-        if(req.body.y== undefined){
+        if (req.body.y == undefined) {
             throw new Error("no y")
         }
-        if(req.body.diagonal != undefined){
+        if (req.body.diagonal != undefined) {
             this.diagonal = req.body.diagonal == "true" || req.body.diagonal == true
         }
 
@@ -98,19 +100,19 @@ class newGame{
         this.x = parseInt(req.body.x)
         this.y = parseInt(req.body.y)
 
-        if(this.x < 1 || this.x > 1024){
+        if (this.x < 1 || this.x > 1024) {
             throw new Error("wrong x")
         }
-        if(this.y < 1 || this.y > 1024){
+        if (this.y < 1 || this.y > 1024) {
             throw new Error("wrong y")
         }
-        
+
 
         //log("Listeing..", j(base_socket, this.hostname))
         //this.socket_namespace = socket.of(j(base_socket, this.hostname))
     }
 
-    renewTimeout(){
+    renewTimeout() {
         //dont renew timeout
         //the timeout renews
         //clearTimeout(this.startTimeout)
@@ -118,14 +120,14 @@ class newGame{
         this.broadCast("startTime", (this.creationTime + start_ns))
     }
 
-    appendConnection(incoming_socket){
+    appendConnection(incoming_socket) {
         //append connection
         this.connecions.push(incoming_socket)
 
         //send the data
         let success_data = JSON.stringify({
-            x:this.x,
-            y:this.y,
+            x: this.x,
+            y: this.y,
             turn: turn_ns,
             serverCreation: this.creationTime,
             serverAlive: game_max_alive,
@@ -137,7 +139,7 @@ class newGame{
         this.broadCastPlayers()
     }
 
-    broadCastPlayers(){
+    broadCastPlayers() {
         //broadcast players
         let json_ls = [];
         for (let index = 0; index < this.connecions.length; index++) {
@@ -148,21 +150,23 @@ class newGame{
         this.broadCast("players", js_str)
     }
 
-    setHost(incoming_socket){
+    setHost(incoming_socket) {
         incoming_socket.socket_info.host = false
-        if(this.connecions.length == 0){
+        if (this.connecions.length == 0) {
             incoming_socket.socket_info.host = true
-            incoming_socket.once("start", () => {startGame(this)})  
+            incoming_socket.once("start", () => {
+                startGame(this)
+            })
             return true
         }
         return false
     }
 
-    connectionCheck(incoming_socket){
-        if(this.joinable){
+    connectionCheck(incoming_socket) {
+        if (this.joinable) {
             //console.log(this.password)
             //console.log(incoming_socket.socket_info.password)
-            if(incoming_socket.socket_info.password == this.password){
+            if (incoming_socket.socket_info.password == this.password) {
                 return true
             }
         }
@@ -171,7 +175,7 @@ class newGame{
 
     }
 
-    broadCast(event, message){
+    broadCast(event, message) {
         for (let index = 0; index < this.connecions.length; index++) {
             const socket = this.connecions[index];
             socket.emit(event, message)
@@ -180,8 +184,8 @@ class newGame{
     /**
      * @param {socket.Socket} incoming_socket 
      */
-    acceptConnectionV2(socket){
-        if(this.connectionCheck(socket) == false){
+    acceptConnectionV2(socket) {
+        if (this.connectionCheck(socket) == false) {
             this.disconnectSocket(socket)
             return false
         }
@@ -191,25 +195,23 @@ class newGame{
         return true
     }
 
-    disconnectSocket(socket){
+    disconnectSocket(socket) {
         //log(this.connecions)
         //log(socket)
         const index = this.connecions.indexOf(socket);
         //log("disconnected", socket.socket_info)
-        if (index > -1) { 
+        if (index > -1) {
             this.connecions.splice(index, 1); // 1 is for only 1
-        }
-        else{
+        } else {
             log("no splice")
         }
         socket.disconnect(true)
 
-        if(this.connecions.length == 0){
+        if (this.connecions.length == 0) {
             this.ended = true;
             this.end("no more players")
-        }
-        else{
-            if(socket.socket_info.host){
+        } else {
+            if (socket.socket_info.host) {
                 this.connecions[0].socket_info.host = true;
             }
             this.broadCastPlayers()
@@ -217,11 +219,13 @@ class newGame{
     }
 
 
-    async start(){
-        while(true){
+    async start() {
+        while (true) {
             //gameloop
-            if(this.ended){return 0;}
-            if(this.connecions.length == 0){
+            if (this.ended) {
+                return 0;
+            }
+            if (this.connecions.length == 0) {
                 this.end("no more players")
                 return 0;
             }
@@ -231,14 +235,15 @@ class newGame{
                  */
                 const element = this.connecions[index];
                 this.broadCast("turn", JSON.stringify({
-                    username: element.socket_info.username, 
+                    username: element.socket_info.username,
                     color: element.socket_info.color
                 }))
-                    //log("waitting", element.socket_info.username)
+                //log("waitting", element.socket_info.username)
                 element.emit("thisturn", true)
-                
+
                 let coord = await this.waitSelection(element)
-                coord.color = element.socket_info.color; coord.username = element.socket_info.username;
+                coord.color = element.socket_info.color;
+                coord.username = element.socket_info.username;
 
                 this.broadCast("place", JSON.stringify(coord))
             }
@@ -249,7 +254,7 @@ class newGame{
      * 
      * @param {socket.RemoteSocket} socket 
      */
-    async waitSelection(socket){
+    async waitSelection(socket) {
         return new Promise((res, _rej) => {
             this.timeout = setTimeout(() => {
 
@@ -258,7 +263,10 @@ class newGame{
                 socket.emit("timeout", "Your Turn had timed out..")
                 this.disconnectSocket(socket)
 
-                res({x: null, y: null})
+                res({
+                    x: null,
+                    y: null
+                })
 
             }, turn_ns)
             socket.once("selected", (coord_str) => {
@@ -272,14 +280,14 @@ class newGame{
         })
     }
 
-    end(reason="true"){
+    end(reason = "true") {
         clearTimeout(this.timeout)
         clearTimeout(this.startTimeout)
 
         log("end", reason)
         //log(this.connecions.length)
         //disconnect the mf
-        if(this.connecions.length == 0){
+        if (this.connecions.length == 0) {
             this.broadCast("end", reason)
             //disconnect sockets
             for (let index = 0; index < this.connecions.length; index++) {
@@ -294,24 +302,24 @@ class newGame{
     }
 }
 
-function setAndClean(socket, inc_data){
+function setAndClean(socket, inc_data) {
     //some kind of sanitization
-    if(inc_data.hostname == undefined || inc_data.hostname == ""){
+    if (inc_data.hostname == undefined || inc_data.hostname == "") {
         return "hostname was not defined"
     }
-    if(inc_data.username == undefined || inc_data.username == ""){
+    if (inc_data.username == undefined || inc_data.username == "") {
         return "username was not defined"
     }
-    if(inc_data.password == undefined){
+    if (inc_data.password == undefined) {
         return "password was not defined"
     }
-    if(inc_data.color == undefined || inc_data.color == ""){
+    if (inc_data.color == undefined || inc_data.color == "") {
         return "color was not defined"
     }
 
     socket.socket_info = {}
     socket.socket_info.hostname = inc_data.hostname.replace(clear_uimput_regexp, "");
-    if(!color_uimput_regexp_test.test(inc_data.color)){
+    if (!color_uimput_regexp_test.test(inc_data.color)) {
         throw new Error("color was not a hex color value")
     }
     socket.socket_info.color = inc_data.color;
@@ -325,7 +333,7 @@ function setAndClean(socket, inc_data){
  * 
  * @param {socket.Socket} socket 
  */
-function newConnection(socket){
+function newConnection(socket) {
     let socket_join_timeout = setTimeout(() => {
         //console.log("wait join timeout")
         socket.disconnect(true)
@@ -334,7 +342,7 @@ function newConnection(socket){
         clearTimeout(socket_join_timeout)
 
         let err = setAndClean(socket, JSON.parse(json))
-        if(err){
+        if (err) {
             socket.emit("join_error", err)
             //console.log(err)
             socket.disconnect(true)
@@ -342,7 +350,7 @@ function newConnection(socket){
         }
 
         let da_agme = games[socket.socket_info.hostname]
-        if(da_agme == undefined){
+        if (da_agme == undefined) {
             //console.log("no correct host found", socket.socket_info.hostname)
             socket.emit("nohost", "true")
             socket.disconnect(true)
@@ -353,12 +361,11 @@ function newConnection(socket){
 
     socket.once("disconnect", () => {
         clearTimeout(socket_join_timeout)
-        if(socket.socket_info == undefined){
+        if (socket.socket_info == undefined) {
             socket.disconnect(true)
-        }
-        else{
+        } else {
             let da_agme = games[socket.socket_info.hostname]
-            if(da_agme != undefined){
+            if (da_agme != undefined) {
                 da_agme.disconnectSocket(socket)
             }
         }
@@ -367,21 +374,25 @@ function newConnection(socket){
 
 
 
-server.use(express.urlencoded({extended: true}))
-server.use(express.json({extended: true}))
+server.use(express.urlencoded({
+    extended: true
+}))
+server.use(express.json({
+    extended: true
+}))
 
 
 
 let nginx_bool = false
 for (let index = 0; index < process.argv.length; index++) {
     const element = process.argv[index];
-    if(element == "--nginx" || element == "-n"){
+    if (element == "--nginx" || element == "-n") {
         nginx_bool = true
     };
 }
 
 //do with nginx
-if(nginx_bool == false){
+if (nginx_bool == false) {
     log("Running on standalone mode")
 
     server.get("/socket.io/socket.io.js", (_req, res, _next) => {
@@ -413,11 +424,11 @@ server.get("/online/host", (_req, res, _next) => {
     res.sendFile(j(__dirname, "/assets/host.html"))
 })
 
-server.get("/online/matchmaking", (_req, res, _next) => { 
+server.get("/online/matchmaking", (_req, res, _next) => {
     const mm = []
     for (let key in games) {
         const game = games[key]
-        if(game.ended == false && game.joinable == true){
+        if (game.ended == false && game.joinable == true) {
             mm.push({
                 hostname: game.hostname,
                 players: game.connecions.length,
@@ -428,8 +439,8 @@ server.get("/online/matchmaking", (_req, res, _next) => {
                 }
             })
         }
-    }       
-        
+    }
+
     res.send(JSON.stringify(mm))
 })
 
@@ -448,11 +459,11 @@ server.get("*", (req, res, _next) => {
 
 server.post("/online/host", (req, res, _next) => {
     log()
-    if(req.body.hostname == undefined){
+    if (req.body.hostname == undefined) {
         res.send("Game Not Defined");
         throw "game not defined"
     }
-    if(games[req.body.hostname] != undefined){
+    if (games[req.body.hostname] != undefined) {
         res.send("Game Exists");
         throw "game exists"
     }
@@ -466,52 +477,67 @@ server.post("/online/host", (req, res, _next) => {
 server.post("/unity/VersinControl", (req, res, _next) => {
     const fs = require("fs");
     let key = "";
-    console.log("yes");
-    
+
     fs.readFile('./UnityKey.txt', 'utf8', (err, data) => {
-      if (err) {
-        console.error(err);
-        return;
-      }
-      key = data;
-      console.log(key);
-      console.log(key + " : " + req.body.key);
-  
-      if (req.body.key.toString() == key.toString()) {
-        console.log("moi");
-        fs.writeFile('./assets/unityVersionControl.txt', req.body.version, err => {
-          if (err) {
+        if (err) {
             console.error(err);
             return;
-          }
-          console.log("new version: " + req.body.version);
-        });
-      }
-      res.send("done");
+        }
+        key = data;
+
+        if (req.body.key.toString() == key.toString()) {
+            console.log("Writing new key...")
+            console.log("moi");
+            fs.writeFile('./assets/unityVersionControl.txt', req.body.version, err => {
+                if (err) {
+                    console.error(err);
+                    return;
+                }
+                console.log("new version: " + req.body.version);
+            });
+        }
+        res.send("done");
     });
-  });
+});
 
-server.post("/unity/NewVersion", upload.single('file'), (req, res) =>{
-    const { key } = req.body;
+server.post("/unity/NewVersion", upload.single('file'), (req, res) => {
+    const fs = require("fs");
+    let key = "";
 
-    // Check if the key is correct
-    if (key === 'your_correct_key') {
-      // File was uploaded and key is correct
-      // Access the uploaded file through req.file
-      if (!req.file) {
-        return res.status(400).json({ error: 'No file received' });
-      }
-  
-      // Save the file to the local filesystem
-      const filePath = `uploads/${req.file.originalname}`;
-      req.file.path = filePath;
-  
-      return res.status(200).json({ message: 'File uploaded and saved successfully' });
-    }
-  
-    // Incorrect key provided
-    return res.status(401).json({ error: 'Incorrect key' });
-})
+    fs.readFile('./UnityKey.txt', 'utf8', (err, data) => {
+        if (err) {
+            console.error(err);
+            return;
+        }
+        key = data;
+
+        if (req.body.key.toString() == key.toString()) {
+            if (!req.file) {
+                return res.status(400).json({
+                    error: 'No file received'
+                });
+            }
+
+            const filePath = "assets\\saarto.exe";
+            //console.log(filePath);
+            console.log("Writing the new installer file")
+            if (fs.existsSync(filePath)) {
+                fs.unlinkSync(filePath);
+            }
+
+            fs.renameSync(req.file.path, filePath);
+
+            return res.status(200).json({
+                message: 'File uploaded and saved successfully'
+            });
+
+        }
+        return res.status(401).json({
+            error: 'Incorrect key'
+        });
+    });
+});
+
 
 server.post("*", (_req, res, _next) => {
     res.send("We dont do that here")
@@ -532,18 +558,17 @@ setInterval(() => {
     for (let key in games) {
         let game = games[key]
         log(Date.now() - game.creationTime, game_max_alive, key, game.ended)
-        if(Date.now() - game.creationTime > game_max_alive){
+        if (Date.now() - game.creationTime > game_max_alive) {
             log("ending");
             log(game.hostname);
             game.end("Reached Timeout");
             delete games[key];
-        }
-        else if(game.ended){
+        } else if (game.ended) {
             log("ending");
             log(game.hostname);
             game.end("Game Ended");
             delete games[key];
         }
     }
-    
+
 }, clean_inter_ns)
