@@ -13,6 +13,8 @@ WEBB/Electron/node_modules/*
 WEBB/Server/node_modules/*
 WEBB/Server/private/*
 WEBB/Server/UnityKey.txt
+WEBB/Server/assets/saarto.exe
+WEBB/Server/assets/saarto.zip
 
 # Distribution / packaging
 .Python
