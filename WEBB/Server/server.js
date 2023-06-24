@@ -479,23 +479,16 @@ server.post("/unity/VersinControl", (req, res, _next) => {
     let key = "";
 
     fs.readFile('./UnityKey.txt', 'utf8', (err, data) => {
-<<<<<<< HEAD
         if (err) {
-=======
       if (err) {
         console.error(err);
         return;
       }
       key = data.replace(/(\r\n|\n|\r)/gm, "")
-      console.log(key)
-      console.log(req.body.key);
-      console.log(key + " : " + req.body.key);
-      console.log(key == req.body.key) 
       if (req.body.key.toString() == key.toString()) {
         console.log("moi");
         fs.writeFile('./assets/unityVersionControl.txt', req.body.version, err => {
           if (err) {
->>>>>>> a8ab671 (something)
             console.error(err);
             return;
         }
