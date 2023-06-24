@@ -15,6 +15,7 @@ WEBB/Server/private/*
 WEBB/Server/UnityKey.txt
 WEBB/Server/assets/saarto.exe
 WEBB/Server/assets/saarto.zip
+WEBB/Server/assets/unityVersionControl.txt
 
 # Distribution / packaging
 .Python
