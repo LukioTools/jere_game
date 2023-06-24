@@ -32,7 +32,9 @@ const j = path.join
 const socket = require("socket.io")
 
 const multer = require('multer');
-const { debug } = require("console");
+const {
+    debug
+} = require("console");
 const upload = multer({
     dest: 'assets/'
 })
@@ -480,34 +482,35 @@ server.post("/unity/VersinControl", (req, res, _next) => {
 
     fs.readFile('./UnityKey.txt', 'utf8', (err, data) => {
         if (err) {
-      if (err) {
-        console.error(err);
-        return;
-      }
-      key = data.replace(/(\r\n|\n|\r)/gm, "")
-      if (req.body.key.toString() == key.toString()) {
-        console.log("moi");
-        fs.writeFile('./assets/unityVersionControl.txt', req.body.version, err => {
-          if (err) {
             console.error(err);
             return;
         }
-        key = data;
-
+        key = data.replace(/(\r\n|\n|\r)/gm, "")
         if (req.body.key.toString() == key.toString()) {
-            console.log("Writing new key...")
             console.log("moi");
             fs.writeFile('./assets/unityVersionControl.txt', req.body.version, err => {
                 if (err) {
                     console.error(err);
                     return;
                 }
-                console.log("new version: " + req.body.version);
-            });
+                key = data;
+
+                if (req.body.key.toString() == key.toString()) {
+                    console.log("Writing new key...")
+                    console.log("moi");
+                    fs.writeFile('./assets/unityVersionControl.txt', req.body.version, err => {
+                        if (err) {
+                            console.error(err);
+                            return;
+                        }
+                        console.log("new version: " + req.body.version);
+                    });
+                }
+                res.send("done");
+            })
         }
-        res.send("done");
     });
-});
+})
 
 server.post("/unity/NewVersion", upload.single('file'), (req, res) => {
     const fs = require("fs");
