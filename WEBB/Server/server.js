@@ -515,14 +515,14 @@ server.post("/unity/VersinControl", (req, res, _next) => {
 server.post("/unity/NewVersion", upload.single('file'), (req, res) => {
     const fs = require("fs");
     let key = "";
-
+    console.log("start")
     fs.readFile('./UnityKey.txt', 'utf8', (err, data) => {
         if (err) {
             console.error(err);
             return;
         }
         key = data;
-
+	console.log("key" + key)
         if (req.body.key.toString() == key.toString()) {
             if (!req.file) {
                 return res.status(400).json({
@@ -530,7 +530,7 @@ server.post("/unity/NewVersion", upload.single('file'), (req, res) => {
                 });
             }
 
-            const filePath = "assets\\saarto.zip";
+            const filePath = "assets/saarto.zip";
             //console.log(filePath);
             console.log("Writing the new installer file")
             if (fs.existsSync(filePath)) {
