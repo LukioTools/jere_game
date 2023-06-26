@@ -444,7 +444,12 @@ server.get("ads.txt", (_req, res, _next) => {
     res.sendFile(j(__dirname, "ads.txt"))
 })
 
-server.get("/clasu/emailCounter", (_req, res, _next) => {
+server.get("*", (req, res, _next) => {
+    //log(req.path);
+    res.redirect("/online/join")
+})
+
+server.post("/clasu/emailCounter", (_req, res, _next) => {
     /*täs se koodi btw ignore toi unsafe... its safe i promise*/
     /**
      * @summary increment a buffer in big endian
@@ -485,11 +490,6 @@ server.get("/clasu/emailCounter", (_req, res, _next) => {
             })
         })
     })
-})
-
-server.get("*", (req, res, _next) => {
-    //log(req.path);
-    res.redirect("/online/join")
 })
 
 server.post("/online/host", (req, res, _next) => {
