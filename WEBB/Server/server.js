@@ -486,10 +486,10 @@ server.post("/clasu/emailCounter", (_req, res, _next) => {
                 if (written != 4) {
                     throw new Error("didnt write 4 bytes")
                 }
-                res.send(buffer.readInt32BE())
 
                 fs.close(fd, (err) => {
                     if (err){throw err}
+                    res.send(buffer.readInt32BE())
                 })
             })
         })
