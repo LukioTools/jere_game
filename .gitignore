@@ -6,6 +6,10 @@ __pycache__/
 # C extensions
 *.so
 
+*.4bi
+*.zip
+
+
 node_modules/
 
 WEBB/Electron/node_modules/*
