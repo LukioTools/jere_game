@@ -509,6 +509,80 @@ server.post("/online/host", (req, res, _next) => {
     res.send(JSON.stringify("Created Da boi"))
 })
 
+server.post("/unity/VersinControl", (req, res, _next) => {
+    const fs = require("fs");
+    let key = "";
+
+    fs.readFile('./UnityKey.txt', 'utf8', (err, data) => {
+        if (err) {
+            console.error(err);
+            return;
+        }
+        key = data.replace(/(\r\n|\n|\r)/gm, "")
+        if (req.body.key.toString() == key.toString()) {
+            console.log("moi");
+            fs.writeFile('./assets/unityVersionControl.txt', req.body.version, err => {
+                if (err) {
+                    console.error(err);
+                    return;
+                }
+                key = data;
+
+                if (req.body.key.toString() == key.toString()) {
+                    console.log("Writing new key...")
+                    console.log("moi");
+                    fs.writeFile('./assets/unityVersionControl.txt', req.body.version, err => {
+                        if (err) {
+                            console.error(err);
+                            return;
+                        }
+                        console.log("new version: " + req.body.version);
+                    });
+                }
+                res.send("done");
+            })
+        }
+    });
+})
+
+server.post("/unity/NewVersion", upload.single('file'), (req, res) => {
+    const fs = require("fs");
+    let key = "";
+    console.log("start")
+    fs.readFile('./UnityKey.txt', 'utf8', (err, data) => {
+        if (err) {
+            console.error(err);
+            return;
+        }
+        key = data;
+	console.log("key" + key)
+        if (req.body.key.toString() == key.toString()) {
+            if (!req.file) {
+                return res.status(400).json({
+                    error: 'No file received'
+                });
+            }
+
+            const filePath = "assets/saarto.zip";
+            //console.log(filePath);
+            console.log("Writing the new installer file")
+            if (fs.existsSync(filePath)) {
+                fs.unlinkSync(filePath);
+            }
+
+            fs.renameSync(req.file.path, filePath);
+
+            return res.status(200).json({
+                message: 'File uploaded and saved successfully'
+            });
+
+        }
+        return res.status(401).json({
+            error: 'Incorrect key'
+        });
+    });
+});
+
 
 server.post("*", (_req, res, _next) => {
     res.send("We dont do that here")
