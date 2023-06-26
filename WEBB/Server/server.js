@@ -459,6 +459,7 @@ server.post("/clasu/emailCounter", (_req, res, _next) => {
             if (buffer[i]++ !== 255) break;
         }
     }
+    console.log("yay it gonna increment");
 
     fs.open(j(__dirname, "emailvote.4bi"), "r+", (err, fd) => {
         if (err) {
@@ -476,6 +477,7 @@ server.post("/clasu/emailCounter", (_req, res, _next) => {
             } else { //set thath bitch to 1
                 buffer = Buffer.from([0, 0, 0, 1])
             }
+            console.log(buffer.readInt32BE())
 
             fs.write(fd, buffer, 0, 4, 0, (err, written, buffer) => {
                 if (err) {
@@ -484,9 +486,10 @@ server.post("/clasu/emailCounter", (_req, res, _next) => {
                 if (written != 4) {
                     throw new Error("didnt write 4 bytes")
                 }
+                res.send(buffer.readInt32BE())
+
                 fs.close(fd, (err) => {
                     if (err){throw err}
-                    res.send(buffer.readInt32BE())
                 })
             })
         })
