@@ -485,7 +485,8 @@ server.post("/clasu/emailCounter", (_req, res, _next) => {
                     throw new Error("didnt write 4 bytes")
                 }
                 fs.close(fd, (err) => {
-                    throw err
+                    if (err){throw err}
+                    res.send(buffer.readInt32BE())
                 })
             })
         })
